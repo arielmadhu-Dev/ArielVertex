@@ -2,8 +2,16 @@ import clsx, { ClassValue } from 'clsx'
 
 export const cx = (...a: ClassValue[]) => clsx(a)
 
-export const initials = (name: string) =>
-  name.split(' ').filter(Boolean).slice(0, 2).map((n) => n[0]?.toUpperCase()).join('')
+export const asArray = <T>(value: T[] | null | undefined): T[] => Array.isArray(value) ? value : []
+
+export const asText = (value: unknown, fallback = '') =>
+  typeof value === 'string' && value.trim() ? value : fallback
+
+export const nice = (value: unknown) =>
+  asText(value, 'Unknown').replace(/([a-z])([A-Z])/g, '$1 $2')
+
+export const initials = (name: unknown) =>
+  asText(name, 'User').split(' ').filter(Boolean).slice(0, 2).map((n) => n[0]?.toUpperCase()).join('')
 
 export const fmtDate = (d?: string | null, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }) =>
   d ? new Date(d).toLocaleDateString(undefined, opts) : '—'
@@ -33,8 +41,8 @@ export const tone = {
 } as const
 export type Tone = keyof typeof tone
 
-export const statusTone = (s: string): Tone => {
-  const k = s.toLowerCase()
+export const statusTone = (s?: string | null): Tone => {
+  const k = asText(s, 'unknown').toLowerCase()
   if (/(green|active|published|approved|completed|fulfilled|ontrack|healthy|outstanding|exceeds)/.test(k)) return 'good'
   if (/(amber|atrisk|underreview|scheduled|inprogress|needsimprovement|pending|open|draft|submitted)/.test(k)) return 'warn'
   if (/(red|blocked|cancelled|rejected|attention|failed|overloaded)/.test(k)) return 'danger'

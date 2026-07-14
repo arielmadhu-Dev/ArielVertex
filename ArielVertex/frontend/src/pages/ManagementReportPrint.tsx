@@ -3,19 +3,23 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
 import { api } from '../lib/api'
-import { fmtDate } from '../ui/util'
+import { asArray, fmtDate } from '../ui/util'
 
 const healthColor = (h: string) => (h === 'Green' ? '#10b981' : h === 'Amber' ? '#f59e0b' : '#f43f5e')
 
 export default function ManagementReportPrint() {
   const navigate = useNavigate()
-  const projects = useQuery({ queryKey: ['projects', ''], queryFn: async () => (await api.get('/projects', { params: { pageSize: 100 } })).data.items as any[] })
+  const projects = useQuery({
+    queryKey: ['projects', 'reports', 'management-print'],
+    queryFn: async () => asArray((await api.get('/projects', { params: { pageSize: 100 } })).data?.items) as any[],
+  })
   const occ = useQuery({ queryKey: ['occupancy'], queryFn: async () => { try { return (await api.get('/resources/occupancy')).data as any } catch { return null } } })
 
   useEffect(() => { document.title = 'Management Report — Ariel Vertex' }, [])
   if (projects.isLoading) return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><Loader2 className="h-6 w-6 animate-spin" /></div>
 
-  const ps = projects.data ?? []
+  const ps = asArray(projects.data)
+  const occupancyBuckets = asArray(occ.data?.buckets)
   const active = ps.filter((p) => p.status === 'Active').length
   const atRisk = ps.filter((p) => p.health !== 'Green').length
   const today = new Date()
@@ -85,12 +89,12 @@ export default function ManagementReportPrint() {
             </tbody>
           </table>
 
-          {occ.data?.buckets && (
+          {occupancyBuckets.length > 0 && (
             <>
               <h2>Resource availability</h2>
               <table>
                 <thead><tr><th>Bucket</th><th className="num">People</th></tr></thead>
-                <tbody>{occ.data.buckets.map((b: any) => (<tr key={b.bucket}><td>{b.bucket}</td><td className="num">{b.count}</td></tr>))}</tbody>
+                <tbody>{occupancyBuckets.map((b: any) => (<tr key={b.bucket}><td>{b.bucket}</td><td className="num">{b.count}</td></tr>))}</tbody>
               </table>
             </>
           )}

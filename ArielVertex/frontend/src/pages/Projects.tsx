@@ -12,7 +12,7 @@ import { Card, StatusPill, Badge, EmptyState, Skeleton, Button } from '../ui/pri
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/form'
 import { useToast } from '../ui/Toast'
-import { fmtDate } from '../ui/util'
+import { asArray, asText, fmtDate, nice } from '../ui/util'
 import { P } from '../components/nav'
 
 export default function Projects() {
@@ -34,6 +34,7 @@ export default function Projects() {
     onSuccess: () => { push('Project created'); setOpen(false); qc.invalidateQueries({ queryKey: ['projects'] }); setForm({ ...form, code: '', name: '', clientName: '', description: '' }) },
     onError: (e) => push(apiError(e), 'error'),
   })
+  const projects = asArray(data?.items)
 
   return (
     <div>
@@ -49,22 +50,22 @@ export default function Projects() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-40" />)}</div>
-      ) : data?.items.length ? (
+      ) : projects.length ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data.items.map((p, i) => (
+          {projects.map((p, i) => (
             <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
               <Link to={`/projects/${p.id}`}>
                 <Card className="p-5 h-full hover:shadow-pop hover:border-brand-200 transition group">
                   <div className="flex items-start justify-between">
-                    <div className="grid place-items-center h-11 w-11 rounded-2xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 font-extrabold text-sm">{p.code}</div>
+                    <div className="grid place-items-center h-11 w-11 rounded-2xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 font-extrabold text-sm">{asText(p.code, 'PRJ')}</div>
                     <StatusPill value={p.health} />
                   </div>
-                  <h3 className="mt-3 font-bold text-[15px] group-hover:text-brand-600 transition">{p.name}</h3>
+                  <h3 className="mt-3 font-bold text-[15px] group-hover:text-brand-600 transition">{asText(p.name, 'Untitled project')}</h3>
                   <p className="text-xs text-slate-500">{p.clientName || 'Internal'}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     <StatusPill value={p.status} />
                     <Badge t="info">{p.priority}</Badge>
-                    {p.myRoleOnProject && <Badge t="brand">{p.myRoleOnProject.replace(/([a-z])([A-Z])/g, '$1 $2')}</Badge>}
+                    {p.myRoleOnProject && <Badge t="brand">{nice(p.myRoleOnProject)}</Badge>}
                   </div>
                   <div className="mt-4 pt-3 border-t border-[var(--line)] flex items-center justify-between text-xs text-slate-500">
                     <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" />{p.memberCount} members</span>

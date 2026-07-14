@@ -1,7 +1,7 @@
 import { ButtonHTMLAttributes, HTMLAttributes, ReactNode, forwardRef } from 'react'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import { cx, initials, tone, Tone, statusTone } from './util'
+import { asText, cx, initials, nice, tone, Tone, statusTone } from './util'
 
 // ---------------- Button ----------------
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'subtle'
@@ -52,18 +52,18 @@ export function Badge({ children, t = 'info', className }: { children: ReactNode
   const c = tone[t]
   return <span className={cx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1', c.bg, c.text, c.ring, className)}>{children}</span>
 }
-export function StatusPill({ value }: { value: string }) {
+export function StatusPill({ value }: { value?: string | null }) {
   const t = statusTone(value)
-  const label = value.replace(/([a-z])([A-Z])/g, '$1 $2')
+  const label = nice(value)
   return <Badge t={t}><span className={cx('h-1.5 w-1.5 rounded-full', tone[t].dot)} />{label}</Badge>
 }
 
 // ---------------- Avatar ----------------
-export function Avatar({ name, color, size = 36 }: { name: string; color?: string; size?: number }) {
+export function Avatar({ name, color, size = 36 }: { name?: string | null; color?: string; size?: number }) {
   return (
     <div className="grid place-items-center rounded-full font-bold text-white shrink-0 ring-2 ring-white/70 dark:ring-navy-700"
       style={{ width: size, height: size, background: color || '#1E7FD4', fontSize: size * 0.38 }}>
-      {initials(name)}
+      {initials(asText(name, 'User'))}
     </div>
   )
 }

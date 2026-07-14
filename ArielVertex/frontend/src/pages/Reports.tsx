@@ -5,17 +5,23 @@ import { api } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
 import { Card, CardHeader, Button, EmptyState, StatusPill } from '../ui/primitives'
 import { useToast } from '../ui/Toast'
+import { asArray } from '../ui/util'
 
 export default function Reports() {
   const { push } = useToast()
-  const projects = useQuery({ queryKey: ['projects', ''], queryFn: async () => (await api.get('/projects', { params: { pageSize: 50 } })).data.items as any[] })
+  const projects = useQuery({
+    queryKey: ['projects', 'reports', 'management'],
+    queryFn: async () => asArray((await api.get('/projects', { params: { pageSize: 50 } })).data?.items) as any[],
+  })
   const occupancy = useQuery({ queryKey: ['occupancy'], queryFn: async () => (await api.get('/resources/occupancy')).data as any })
 
-  const healthData = (projects.data ?? []).map((p) => ({ name: p.code, members: p.memberCount }))
+  const projectItems = asArray(projects.data)
+  const occupancyBuckets = asArray(occupancy.data?.buckets)
+  const healthData = projectItems.map((p) => ({ name: p.code, members: p.memberCount }))
 
   const exportCsv = () => {
     const rows = [['Code', 'Name', 'Status', 'Health', 'Priority', 'Client', 'Members']]
-    ;(projects.data ?? []).forEach((p) => rows.push([p.code, p.name, p.status, p.health, p.priority, p.clientName, String(p.memberCount)]))
+    projectItems.forEach((p) => rows.push([p.code, p.name, p.status, p.health, p.priority, p.clientName, String(p.memberCount)]))
     const csv = rows.map((r) => r.map((c) => `"${(c ?? '').toString().replace(/"/g, '""')}"`).join(',')).join('\n')
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
     const a = document.createElement('a'); a.href = url; a.download = 'ariel-vertex-projects.csv'; a.click()
@@ -48,7 +54,7 @@ export default function Reports() {
         <Card>
           <CardHeader title="Resource availability" subtitle="Across the organization" />
           <div className="p-5 space-y-2.5">
-            {occupancy.data?.buckets?.map((b: any) => (
+            {occupancyBuckets.map((b: any) => (
               <div key={b.bucket} className="flex items-center justify-between rounded-xl border border-[var(--line)] px-4 py-3">
                 <span className="text-sm font-medium">{b.bucket}</span>
                 <span className="text-lg font-extrabold">{b.count}</span>
@@ -66,7 +72,7 @@ export default function Reports() {
               <th className="px-5 py-3">Code</th><th className="px-5 py-3">Project</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Health</th><th className="px-5 py-3">Members</th>
             </tr></thead>
             <tbody>
-              {projects.data?.map((p) => (
+              {projectItems.map((p) => (
                 <tr key={p.id} className="border-b border-[var(--line)] last:border-0">
                   <td className="px-5 py-2.5 font-bold">{p.code}</td><td className="px-5 py-2.5">{p.name}</td>
                   <td className="px-5 py-2.5"><StatusPill value={p.status} /></td><td className="px-5 py-2.5"><StatusPill value={p.health} /></td>

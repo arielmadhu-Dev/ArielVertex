@@ -1,3 +1,4 @@
+using System.Linq;
 using ArielVertex.Domain.Enums;
 
 namespace ArielVertex.Application.Security;
@@ -32,7 +33,8 @@ public static class Permissions
     public const string ResourcesManage     = "resources.manage";
     public const string ResourcesViewAll    = "resources.view.all";
     public const string ReportsView         = "reports.view";
-    public const string EmployeesManage     = "employees.manage";
+    public const string EmployeesManage     = "employees.manage";   // view / edit the employee directory
+    public const string RolesManage         = "roles.manage";       // change another user's portal role (Super Admin only)
     public const string SyncRun             = "sync.run";
     public const string AuditView           = "audit.view";
     public const string AdminSettings       = "admin.settings";
@@ -45,7 +47,19 @@ public static class Permissions
     public const string ConfigManage        = "config.manage";     // admin portal configuration
     public const string MinutesManage       = "minutes.manage";    // capture notes → minutes → send (PC + HR)
 
-    /// <summary>Every capability — granted wholesale to Super Admin.</summary>
+    // ---- Performance management (ported from PMS) ----
+    public const string CyclesManage        = "cycles.manage";        // HR create/activate/close appraisal cycles
+    public const string AppraisalsManage    = "appraisals.manage";    // manager evaluation of an appraisal
+    public const string AppraisalsRelease   = "appraisals.release";   // release the final rating (HR/leadership)
+    public const string GoalsAssign         = "goals.assign";         // assign goals/KRAs to employees
+    public const string GoalsViewAll        = "goals.view.all";       // see everyone's goals (HR/leadership)
+    public const string PromotionsRecommend = "promotions.recommend"; // managers recommend a promotion
+    public const string PromotionsApprove   = "promotions.approve";   // leadership approves a promotion
+    public const string PromotionsManage    = "promotions.manage";    // HR validate/complete/reject + view all
+    public const string LearningManage      = "learning.manage";      // assign / auto-recommend training
+    public const string AnalyticsView       = "analytics.view";       // 9-box + org analytics
+
+    /// <summary>Every capability — the full catalogue used to register one policy per capability.</summary>
     public static readonly string[] All =
     {
         ProjectsViewAll, ProjectsView, ProjectsCreate, ProjectsManage, MembersManage,
@@ -53,20 +67,36 @@ public static class Permissions
         ReviewsRequest, ReviewsSchedule, ReviewsSubmit, FeedbackSubmit, FeedbackApprove,
         FeedbackViewAll, PerformanceViewOwn, PerformanceViewAll, PerformancePublish,
         ResourcesRequest, ResourcesManage, ResourcesViewAll, ReportsView, EmployeesManage,
-        SyncRun, AuditView, AdminSettings,
+        RolesManage, SyncRun, AuditView, AdminSettings,
         ExpensesManage, ExpensesApprove, ExpensesViewAll, ExpensesConfigure,
-        PipView, PipManage, ConfigManage, MinutesManage
+        PipView, PipManage, ConfigManage, MinutesManage,
+        CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
+        PromotionsRecommend, PromotionsApprove, PromotionsManage, LearningManage, AnalyticsView
     };
 
-    /// <summary>Capabilities granted to each portal role (spec section 4 access model).</summary>
+    // Capabilities that only make sense for an individual contributor, never granted to the
+    // all-powerful admin roles (matrix: Submit Status Update / View Own Performance are not admin actions).
+    private static readonly HashSet<string> ContributorOnly = new() { StatusSubmit, PerformanceViewOwn };
+
+    /// <summary>Everything except contributor-only capabilities — granted to Super Admin (and HR Director).</summary>
+    public static readonly string[] SuperAdminGrant = All.Where(p => !ContributorOnly.Contains(p)).ToArray();
+
+    /// <summary>Capabilities granted to each portal role (aligned to the Permission Matrix).</summary>
     public static IReadOnlyCollection<string> For(PortalRole role) => role switch
     {
-        PortalRole.SuperAdmin => All,
+        PortalRole.SuperAdmin => SuperAdminGrant,
 
+        // HR Director is a Super Admin equivalent (per business decision) — full access incl. user/role management.
+        PortalRole.HrDirector => SuperAdminGrant,
+
+        // CEO: view-oriented, plus Request Review and Add Feedback (matrix section 5).
         PortalRole.CeoAdmin => new[]
         {
             ProjectsViewAll, ProjectsView, PerformanceViewAll, FeedbackViewAll,
-            ResourcesViewAll, ReportsView, AuditView, ExpensesViewAll, PipView
+            ResourcesViewAll, ReportsView, AuditView, ExpensesViewAll, PipView,
+            ReviewsRequest, FeedbackSubmit,
+            // Leadership scope over the ported performance modules.
+            AppraisalsRelease, PromotionsApprove, GoalsViewAll, AnalyticsView
         },
 
         PortalRole.SystemAdmin => new[]
@@ -75,48 +105,49 @@ public static class Permissions
             ExpensesConfigure, ExpensesViewAll, ConfigManage
         },
 
+        // HR Manager: HR duties + Request Review (request-only) and Add Feedback. No RolesManage.
         PortalRole.HrManager => new[]
         {
             ProjectsViewAll, ProjectsView, EmployeesManage, ReviewsRequest,
-            FeedbackApprove, FeedbackViewAll, PerformanceViewAll, PerformancePublish,
+            FeedbackSubmit, FeedbackApprove, FeedbackViewAll, PerformanceViewAll, PerformancePublish,
             ResourcesManage, ResourcesViewAll, ReportsView, ExpensesViewAll, PipView, PipManage,
-            MinutesManage
+            MinutesManage,
+            // HR owns the performance-management lifecycle.
+            CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
+            PromotionsManage, LearningManage, AnalyticsView
         },
 
-        // HR Director additionally approves expenses, manages PIPs, and configures the portal.
-        PortalRole.HrDirector => new[]
-        {
-            ProjectsViewAll, ProjectsView, EmployeesManage, ReviewsRequest,
-            FeedbackApprove, FeedbackViewAll, PerformanceViewAll, PerformancePublish,
-            ResourcesManage, ResourcesViewAll, ReportsView,
-            ExpensesViewAll, ExpensesApprove, ExpensesConfigure, PipView, PipManage, ConfigManage,
-            MinutesManage
-        },
-
-        // Accountant: approves & sees all expenses (finance owner).
+        // Accountant: approves & sees all expenses (finance owner). No own-performance dashboard.
         PortalRole.Accountant => new[]
         {
-            ProjectsView, PerformanceViewOwn, ExpensesApprove, ExpensesViewAll
+            ProjectsView, ExpensesApprove, ExpensesViewAll
         },
 
-        // Front desk: raises and manages internal expenses / payment requests.
+        // Front desk: raises and manages internal expenses / payment requests. No own-performance dashboard.
         PortalRole.Frontdesk => new[]
         {
-            ProjectsView, PerformanceViewOwn, ExpensesManage
+            ProjectsView, ExpensesManage
         },
 
+        // Project Manager: assigned project management + Schedule/Request Review, Add Feedback, Submit Status.
         PortalRole.ProjectManager => new[]
         {
             ProjectsView, ProjectsCreate, ProjectsManage, MembersManage, DocumentsUpload,
-            DocumentsDelete, CallsManage, StatusViewAll, ReviewsSchedule, ReviewsSubmit,
-            FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage
+            DocumentsDelete, CallsManage, StatusSubmit, StatusViewAll,
+            ReviewsRequest, ReviewsSchedule, ReviewsSubmit,
+            FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage,
+            // Managers evaluate appraisals, assign goals, recommend promotions, assign training for their reports.
+            AppraisalsManage, GoalsAssign, PromotionsRecommend, LearningManage
         },
 
+        // Project Coordinator: same delivery capabilities as PM (may create projects, per business decision).
         PortalRole.ProjectCoordinator => new[]
         {
-            ProjectsView, ProjectsManage, MembersManage, DocumentsUpload, DocumentsDelete,
-            CallsManage, StatusViewAll, ReviewsSchedule, ReviewsSubmit, FeedbackSubmit,
-            ResourcesRequest, ReportsView, MinutesManage
+            ProjectsView, ProjectsCreate, ProjectsManage, MembersManage, DocumentsUpload,
+            DocumentsDelete, CallsManage, StatusSubmit, StatusViewAll,
+            ReviewsRequest, ReviewsSchedule, ReviewsSubmit,
+            FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage,
+            AppraisalsManage, GoalsAssign, PromotionsRecommend, LearningManage
         },
 
         PortalRole.TechnicalLead => new[]

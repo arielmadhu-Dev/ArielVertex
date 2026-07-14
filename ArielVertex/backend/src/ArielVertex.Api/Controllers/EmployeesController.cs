@@ -33,11 +33,17 @@ public class EmployeesController : ApiControllerBase
     }
 
     [HttpPut("{id:int}/role")]
-    [Capability(Permissions.EmployeesManage)]
+    [Capability(Permissions.RolesManage)]
     public async Task<IActionResult> ChangeRole(int id, [FromBody] UpdateUserRoleRequest req)
     {
         var u = await _db.Users.FindAsync(id);
         if (u is null) return Missing();
+        // Guard against removing the last Super Admin (avoids locking the org out of user/role management).
+        if (u.Role == PortalRole.SuperAdmin && req.Role != PortalRole.SuperAdmin)
+        {
+            var superAdmins = await _db.Users.CountAsync(x => x.Role == PortalRole.SuperAdmin);
+            if (superAdmins <= 1) return Conflict409("Cannot change the role of the last Super Admin.");
+        }
         var old = u.Role;
         u.Role = req.Role;
         await _db.SaveChangesAsync();

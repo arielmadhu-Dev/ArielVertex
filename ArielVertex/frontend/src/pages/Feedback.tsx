@@ -11,7 +11,7 @@ import { Meter } from '../ui/widgets'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/form'
 import { useToast } from '../ui/Toast'
-import { fmtDate, tone } from '../ui/util'
+import { asArray, fmtDate, tone } from '../ui/util'
 import { P } from '../components/nav'
 
 interface Category { key: string; name: string; factors: string; defaultWeight: number; canBeNa: boolean }
@@ -25,6 +25,7 @@ export default function Feedback() {
 
   const { data } = useQuery({ queryKey: ['feedback'], queryFn: async () => (await api.get<Fb[]>('/feedback')).data })
   const invalidate = () => qc.invalidateQueries({ queryKey: ['feedback'] })
+  const feedbackItems = asArray(data)
 
   const act = useMutation({
     mutationFn: ({ id, action, reason }: { id: number; action: string; reason?: string }) =>
@@ -38,10 +39,11 @@ export default function Feedback() {
       <PageHeader title="Feedback" subtitle="Structured quarterly feedback with HR approval before it reaches employees" icon={<MessageSquareQuote className="h-5 w-5" />}
         actions={has(P.FeedbackSubmit) ? <Button icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)}>New feedback</Button> : undefined} />
 
-      {data?.length ? (
+      {feedbackItems.length ? (
         <div className="space-y-3">
-          {data.map((f) => {
-            const avg = f.categoryScores.filter((c) => !c.notApplicable)
+          {feedbackItems.map((f) => {
+            const categoryScores = asArray(f.categoryScores)
+            const avg = categoryScores.filter((c) => !c.notApplicable)
             const mean = avg.length ? Math.round(avg.reduce((a, c) => a + c.score, 0) / avg.length) : 0
             return (
               <Card key={f.id} className="p-5">
@@ -58,9 +60,9 @@ export default function Feedback() {
                     <p className="text-sm mt-2">{f.constructiveSummary}</p>
                     {f.revisionReason && <p className="text-sm mt-1 text-amber-600">Revision requested: {f.revisionReason}</p>}
 
-                    {f.categoryScores.length > 0 && (
+                    {categoryScores.length > 0 && (
                       <div className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-2 max-w-2xl">
-                        {f.categoryScores.map((c) => (
+                        {categoryScores.map((c) => (
                           <div key={c.category} className="flex items-center gap-2">
                             <span className="text-xs text-slate-500 w-40 truncate">{c.categoryName}</span>
                             {c.notApplicable ? <Badge t="neutral">N/A</Badge> : <><div className="flex-1"><Meter value={c.score} tone={c.score >= 80 ? 'good' : c.score >= 70 ? 'brand' : c.score >= 60 ? 'warn' : 'danger'} /></div><span className="text-xs font-bold w-8 text-right">{c.score}</span></>}
@@ -98,16 +100,27 @@ export default function Feedback() {
 
 function NewFeedbackModal({ open, onClose, onDone, push }: any) {
   const employees = useEmployees()
-  const projects = useQuery({ queryKey: ['projects', ''], queryFn: async () => (await api.get('/projects', { params: { pageSize: 50 } })).data.items as any[] })
-  const cats = useQuery({ queryKey: ['perf-cats'], queryFn: async () => (await api.get('/performance/categories')).data.categories as Category[], enabled: open })
+  const projects = useQuery({
+    queryKey: ['projects', 'options', 'feedback'],
+    queryFn: async () => asArray((await api.get('/projects', { params: { pageSize: 50 } })).data?.items) as any[],
+    enabled: open,
+  })
+  const cats = useQuery({
+    queryKey: ['perf-cats'],
+    queryFn: async () => asArray((await api.get('/performance/categories')).data?.categories) as Category[],
+    enabled: open,
+  })
 
   const [form, setForm] = useState<any>({ subjectUserId: 0, projectId: 0, period: '2026-Q3', constructiveSummary: '', strengths: '', improvementAreas: '', actionPlan: '', internalNotes: '', submitNow: true })
   const [scores, setScores] = useState<Record<string, { score: number; na: boolean }>>({})
+  const employeeOptions = asArray(employees.data)
+  const projectOptions = asArray(projects.data)
+  const categoryOptions = asArray(cats.data)
 
   const submit = useMutation({
     mutationFn: () => api.post('/feedback', {
       ...form, projectId: form.projectId || null,
-      categoryScores: (cats.data ?? []).map((c) => ({ category: c.key, score: scores[c.key]?.score ?? 75, notApplicable: scores[c.key]?.na ?? false, comment: '' })),
+      categoryScores: categoryOptions.map((c) => ({ category: c.key, score: scores[c.key]?.score ?? 75, notApplicable: scores[c.key]?.na ?? false, comment: '' })),
     }),
     onSuccess: () => { push(form.submitNow ? 'Feedback submitted for HR approval' : 'Draft saved'); onDone() },
     onError: (e: any) => push(apiError(e), 'error'),
@@ -118,15 +131,15 @@ function NewFeedbackModal({ open, onClose, onDone, push }: any) {
       footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button loading={submit.isPending} disabled={!form.subjectUserId || !form.constructiveSummary} onClick={() => submit.mutate()}>{form.submitNow ? 'Submit for approval' : 'Save draft'}</Button></>}>
       <div className="space-y-4">
         <div className="grid sm:grid-cols-3 gap-4">
-          <Field label="Employee" required><Select value={form.subjectUserId} onChange={(e) => setForm({ ...form, subjectUserId: Number(e.target.value) })}><option value={0}>Select…</option>{employees.data?.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}</Select></Field>
-          <Field label="Project"><Select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>None</option>{projects.data?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
+          <Field label="Employee" required><Select value={form.subjectUserId} onChange={(e) => setForm({ ...form, subjectUserId: Number(e.target.value) })}><option value={0}>Select…</option>{employeeOptions.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}</Select></Field>
+          <Field label="Project"><Select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>None</option>{projectOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
           <Field label="Period"><Input value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value })} placeholder="2026-Q3" /></Field>
         </div>
 
         <div>
           <p className="av-label mb-2">Competency scores (0–100)</p>
           <div className="space-y-2.5">
-            {cats.data?.map((c) => {
+            {categoryOptions.map((c) => {
               const s = scores[c.key] ?? { score: 75, na: false }
               return (
                 <div key={c.key} className="flex items-center gap-3">

@@ -50,9 +50,10 @@ export interface ReviewRequest {
   assignedToName?: string; reviewType: string; status: string; notes: string; dueDate?: string
   closedAt?: string; createdAt: string; meeting?: ReviewMeeting; hasOutcome: boolean
 }
+export type MeetingResponse = 'NoResponse' | 'Accepted' | 'Declined' | 'Tentative'
 export interface ReviewMeeting {
   id: number; title: string; description: string; scheduledAt: string; durationMinutes: number
-  attendees: string; teamsJoinUrl?: string; outlookEventId?: string
+  attendees: string; teamsJoinUrl?: string; outlookEventId?: string; responseStatus: MeetingResponse
 }
 
 export interface CategoryScore { category: string; categoryName: string; score: number; notApplicable: boolean; comment: string }
@@ -102,6 +103,39 @@ export interface ResourceRequestItem {
 }
 
 export interface EnumOption { value: string; label: string }
+
+// ---- Performance management (ported modules) ----
+export interface Cycle {
+  id: number; name: string; startDate: string; endDate: string
+  status: 'Draft' | 'Active' | 'Closed'; appraisalCount: number; createdAt: string
+}
+export interface Appraisal {
+  id: number; cycleId: number; cycleName: string; employeeId: number; employeeName: string; avatarColor: string
+  managerId?: number; managerName?: string
+  stage: 'SelfPending' | 'SelfSubmitted' | 'ManagerCompleted' | 'Released'
+  selfRating?: number; selfComments?: string; selfSubmittedAt?: string
+  managerRating?: number; managerComments?: string; managerReviewedAt?: string
+  finalRating?: number; releasedAt?: string; createdAt: string
+}
+export interface Goal {
+  id: number; employeeId: number; employeeName: string; avatarColor: string; title: string; description: string
+  category: string; weightage: number; progress: number; targetDate: string
+  status: 'NotStarted' | 'InProgress' | 'Completed' | 'Cancelled'
+  cycleId?: number; assignedByName?: string; createdAt: string
+}
+export type PromotionStage = 'ManagerRecommended' | 'HrValidated' | 'LeadershipApproved' | 'Completed' | 'Rejected'
+export interface Promotion {
+  id: number; employeeId: number; employeeName: string; avatarColor: string
+  currentDesignation: string; proposedDesignation: string; currentSalary?: number; proposedSalary?: number
+  justification: string; stage: PromotionStage; decisionNote?: string; recommendedByName?: string
+  validatedAt?: string; approvedAt?: string; completedAt?: string; createdAt: string
+}
+export interface Training {
+  id: number; employeeId: number; employeeName: string; avatarColor: string; skillGap: string
+  recommendedTraining: string; durationMonths: number
+  status: 'Recommended' | 'InProgress' | 'Completed'; source: string; createdAt: string
+}
+export interface SearchResult { type: string; id: number; title: string; subtitle: string; link: string }
 
 export interface ExpenseItem {
   id: number; title: string; description: string; category: string; categoryLabel: string

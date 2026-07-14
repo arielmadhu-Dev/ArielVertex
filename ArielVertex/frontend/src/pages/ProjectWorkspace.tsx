@@ -15,9 +15,8 @@ import { Tabs } from '../ui/widgets'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/form'
 import { useToast } from '../ui/Toast'
-import { fmtDate, fmtDateTime, cx } from '../ui/util'
+import { asArray, asText, fmtDate, fmtDateTime, cx, nice } from '../ui/util'
 
-const nice = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1 $2')
 
 export default function ProjectWorkspace() {
   const { id } = useParams()
@@ -28,9 +27,12 @@ export default function ProjectWorkspace() {
   if (isLoading) return <div className="space-y-4"><Skeleton className="h-24" /><Skeleton className="h-64" /></div>
   if (!p) return <EmptyState icon={<Info className="h-6 w-6" />} title="Project not found" />
 
+  const members = asArray(p.members)
+  const tags = asArray(p.tags)
+
   const tabs = [
     { key: 'overview', label: 'Overview' },
-    { key: 'team', label: 'Team', badge: p.members.length },
+    { key: 'team', label: 'Team', badge: members.length },
     { key: 'documents', label: 'Documents' },
     { key: 'calls', label: 'Customer Calls' },
     { key: 'status', label: 'Status Updates' },
@@ -46,9 +48,9 @@ export default function ProjectWorkspace() {
         <div className="absolute right-0 top-0 h-32 w-32 av-brand-gradient opacity-10 blur-3xl rounded-full" />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="grid place-items-center h-14 w-14 rounded-2xl av-brand-gradient text-white font-extrabold">{p.code}</div>
+            <div className="grid place-items-center h-14 w-14 rounded-2xl av-brand-gradient text-white font-extrabold">{asText(p.code, 'PRJ')}</div>
             <div>
-              <h1 className="text-2xl font-extrabold tracking-tight">{p.name}</h1>
+              <h1 className="text-2xl font-extrabold tracking-tight">{asText(p.name, 'Untitled project')}</h1>
               <p className="text-sm text-slate-500">{p.clientName || 'Internal'} · Owner: {p.businessOwner || '—'}</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <StatusPill value={p.status} /><StatusPill value={p.health} /><Badge t="info">{p.priority} priority</Badge>
@@ -61,7 +63,7 @@ export default function ProjectWorkspace() {
             <p><span className="font-semibold text-[var(--ink)]">Target:</span> {fmtDate(p.expectedEndDate)}</p>
           </div>
         </div>
-        {p.tags.length > 0 && <div className="mt-4 flex flex-wrap gap-1.5">{p.tags.map((t) => <span key={t} className="text-xs rounded-md bg-slate-100 dark:bg-navy-600 px-2 py-0.5 text-slate-500">#{t}</span>)}</div>}
+        {tags.length > 0 && <div className="mt-4 flex flex-wrap gap-1.5">{tags.map((t) => <span key={t} className="text-xs rounded-md bg-slate-100 dark:bg-navy-600 px-2 py-0.5 text-slate-500">#{t}</span>)}</div>}
       </Card>
 
       <Card className="overflow-hidden">
@@ -123,15 +125,16 @@ function Team({ p }: { p: ProjectDetail }) {
     onSuccess: () => { push('Member removed'); qc.invalidateQueries({ queryKey: ['project', p.id] }) },
     onError: (e) => push(apiError(e), 'error'),
   })
+  const members = asArray(p.members)
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-slate-500">{p.members.length} people on this project</p>
+        <p className="text-sm text-slate-500">{members.length} people on this project</p>
         {p.canManage && <Button size="sm" icon={<UserPlus className="h-4 w-4" />} onClick={() => setOpen(true)}>Add member</Button>}
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
-        {p.members.map((m) => (
+        {members.map((m) => (
           <div key={m.id} className="flex items-center gap-3 rounded-xl border border-[var(--line)] p-3">
             <Avatar name={m.name} color={m.avatarColor} size={42} />
             <div className="min-w-0 flex-1">
@@ -153,7 +156,7 @@ function Team({ p }: { p: ProjectDetail }) {
           <div className="sm:col-span-2"><Field label="Employee" required>
             <Select value={form.userId} onChange={(e) => setForm({ ...form, userId: Number(e.target.value) })}>
               <option value={0}>Select an employee…</option>
-              {employees.data?.filter((e) => !p.members.some((m) => m.userId === e.id)).map((e) => <option key={e.id} value={e.id}>{e.name} — {e.designation}</option>)}
+              {asArray(employees.data).filter((e) => !members.some((m) => m.userId === e.id)).map((e) => <option key={e.id} value={e.id}>{e.name} - {e.designation}</option>)}
             </Select>
           </Field></div>
           <Field label="Role on project"><Select value={form.roleOnProject} onChange={(e) => setForm({ ...form, roleOnProject: e.target.value })}>{enums.data?.projectRoles.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select></Field>

@@ -10,6 +10,7 @@ import { cx } from '../ui/util'
 import { visibleGroups } from './nav'
 import { NotificationBell } from './NotificationBell'
 import { CommandPalette } from './CommandPalette'
+import { ErrorBoundary } from './ErrorBoundary'
 
 function useTheme() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
@@ -152,7 +153,9 @@ export function AppLayout() {
         </header>
 
         <main className="px-4 sm:px-6 py-6 max-w-[1400px] mx-auto">
-          <Outlet />
+          <ErrorBoundary resetKey={loc.pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
 
