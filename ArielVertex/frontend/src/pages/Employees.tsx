@@ -18,7 +18,7 @@ export default function Employees() {
   const qc = useQueryClient()
   const enums = useEnums()
   const [search, setSearch] = useState('')
-  const canManage = has(P.EmployeesManage)
+  const canChangeRole = has(P.RolesManage)   // role changes are Super Admin only (matrix: Manage Users/Roles)
 
   const { data, isLoading } = useQuery({
     queryKey: ['employees', search],
@@ -65,7 +65,7 @@ export default function Employees() {
                     <td className="px-5 py-3 hidden md:table-cell text-slate-500">{u.department || '—'}</td>
                     <td className="px-5 py-3 hidden lg:table-cell text-slate-500">{u.managerName || '—'}</td>
                     <td className="px-5 py-3">
-                      {canManage
+                      {canChangeRole
                         ? <Select value={u.role} onChange={(e) => changeRole.mutate({ id: u.id, role: e.target.value })} className="w-44 !py-1.5 text-xs">{enums.data?.roles.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select>
                         : <Badge t="brand">{u.roleLabel}</Badge>}
                     </td>
@@ -77,7 +77,7 @@ export default function Employees() {
         </div>
         {!isLoading && !data?.items.length && <EmptyState icon={<UsersRound className="h-6 w-6" />} title="No employees found" />}
       </Card>
-      {canManage && <p className="mt-3 text-xs text-slate-400 inline-flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" />Role changes are audited and take effect on the employee's next sign-in.</p>}
+      {canChangeRole && <p className="mt-3 text-xs text-slate-400 inline-flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" />Role changes are audited and take effect on the employee's next sign-in.</p>}
     </div>
   )
 }
