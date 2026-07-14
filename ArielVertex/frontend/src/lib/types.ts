@@ -104,6 +104,26 @@ export interface ResourceRequestItem {
 
 export interface EnumOption { value: string; label: string }
 
+// ---- Performance management (ported modules) ----
+export interface Cycle {
+  id: number; name: string; startDate: string; endDate: string
+  status: 'Draft' | 'Active' | 'Closed'; appraisalCount: number; createdAt: string
+}
+export interface Appraisal {
+  id: number; cycleId: number; cycleName: string; employeeId: number; employeeName: string; avatarColor: string
+  managerId?: number; managerName?: string
+  stage: 'SelfPending' | 'SelfSubmitted' | 'ManagerCompleted' | 'Released'
+  selfRating?: number; selfComments?: string; selfSubmittedAt?: string
+  managerRating?: number; managerComments?: string; managerReviewedAt?: string
+  finalRating?: number; releasedAt?: string; createdAt: string
+}
+export interface Goal {
+  id: number; employeeId: number; employeeName: string; avatarColor: string; title: string; description: string
+  category: string; weightage: number; progress: number; targetDate: string
+  status: 'NotStarted' | 'InProgress' | 'Completed' | 'Cancelled'
+  cycleId?: number; assignedByName?: string; createdAt: string
+}
+
 export interface ExpenseItem {
   id: number; title: string; description: string; category: string; categoryLabel: string
   amount: number; currency: string; vendor: string; expenseDate: string; paymentMethod: string

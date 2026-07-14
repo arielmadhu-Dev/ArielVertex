@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, FolderKanban, ClipboardCheck, MessageSquareQuote, LineChart,
   UsersRound, UserPlus, GaugeCircle, FileBarChart, ShieldCheck, CalendarClock, Gauge, Wallet,
-  LifeBuoy, SlidersHorizontal, NotebookPen, LucideIcon,
+  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, LucideIcon,
 } from 'lucide-react'
 import type { CurrentUser } from '../lib/types'
 
@@ -18,6 +18,11 @@ export const P = {
   ExpensesViewAll: 'expenses.view.all', ExpensesConfigure: 'expenses.configure',
   PipView: 'pip.view', PipManage: 'pip.manage', ConfigManage: 'config.manage',
   MinutesManage: 'minutes.manage',
+  // Performance management (ported)
+  CyclesManage: 'cycles.manage', AppraisalsManage: 'appraisals.manage', AppraisalsRelease: 'appraisals.release',
+  GoalsAssign: 'goals.assign', GoalsViewAll: 'goals.view.all',
+  PromotionsRecommend: 'promotions.recommend', PromotionsApprove: 'promotions.approve', PromotionsManage: 'promotions.manage',
+  LearningManage: 'learning.manage', AnalyticsView: 'analytics.view',
 }
 
 export interface NavItem { to: string; label: string; icon: LucideIcon; show: (u: CurrentUser) => boolean; feature?: string }
@@ -43,6 +48,14 @@ export const navGroups: NavGroup[] = [
       { to: '/my-performance', label: 'My Performance', icon: LineChart, show: (u) => any(u, P.PerformanceViewOwn) },
       { to: '/performance-reports', label: 'Performance Reports', icon: Gauge, feature: 'performanceReports', show: (u) => any(u, P.PerformanceViewAll) },
       { to: '/pip', label: 'Improvement Plans', icon: LifeBuoy, feature: 'pip', show: (u) => any(u, P.PipView) },
+    ],
+  },
+  {
+    title: 'Performance',
+    items: [
+      { to: '/appraisals', label: 'Appraisals', icon: Award, show: () => true },
+      { to: '/goals', label: 'Goals & KRAs', icon: Target, show: () => true },
+      { to: '/cycles', label: 'Appraisal Cycles', icon: CalendarRange, show: (u) => any(u, P.CyclesManage) },
     ],
   },
   {

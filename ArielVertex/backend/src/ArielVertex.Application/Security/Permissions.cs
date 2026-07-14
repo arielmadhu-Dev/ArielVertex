@@ -47,6 +47,18 @@ public static class Permissions
     public const string ConfigManage        = "config.manage";     // admin portal configuration
     public const string MinutesManage       = "minutes.manage";    // capture notes → minutes → send (PC + HR)
 
+    // ---- Performance management (ported from PMS) ----
+    public const string CyclesManage        = "cycles.manage";        // HR create/activate/close appraisal cycles
+    public const string AppraisalsManage    = "appraisals.manage";    // manager evaluation of an appraisal
+    public const string AppraisalsRelease   = "appraisals.release";   // release the final rating (HR/leadership)
+    public const string GoalsAssign         = "goals.assign";         // assign goals/KRAs to employees
+    public const string GoalsViewAll        = "goals.view.all";       // see everyone's goals (HR/leadership)
+    public const string PromotionsRecommend = "promotions.recommend"; // managers recommend a promotion
+    public const string PromotionsApprove   = "promotions.approve";   // leadership approves a promotion
+    public const string PromotionsManage    = "promotions.manage";    // HR validate/complete/reject + view all
+    public const string LearningManage      = "learning.manage";      // assign / auto-recommend training
+    public const string AnalyticsView       = "analytics.view";       // 9-box + org analytics
+
     /// <summary>Every capability — the full catalogue used to register one policy per capability.</summary>
     public static readonly string[] All =
     {
@@ -57,7 +69,9 @@ public static class Permissions
         ResourcesRequest, ResourcesManage, ResourcesViewAll, ReportsView, EmployeesManage,
         RolesManage, SyncRun, AuditView, AdminSettings,
         ExpensesManage, ExpensesApprove, ExpensesViewAll, ExpensesConfigure,
-        PipView, PipManage, ConfigManage, MinutesManage
+        PipView, PipManage, ConfigManage, MinutesManage,
+        CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
+        PromotionsRecommend, PromotionsApprove, PromotionsManage, LearningManage, AnalyticsView
     };
 
     // Capabilities that only make sense for an individual contributor, never granted to the
@@ -80,7 +94,9 @@ public static class Permissions
         {
             ProjectsViewAll, ProjectsView, PerformanceViewAll, FeedbackViewAll,
             ResourcesViewAll, ReportsView, AuditView, ExpensesViewAll, PipView,
-            ReviewsRequest, FeedbackSubmit
+            ReviewsRequest, FeedbackSubmit,
+            // Leadership scope over the ported performance modules.
+            AppraisalsRelease, PromotionsApprove, GoalsViewAll, AnalyticsView
         },
 
         PortalRole.SystemAdmin => new[]
@@ -95,7 +111,10 @@ public static class Permissions
             ProjectsViewAll, ProjectsView, EmployeesManage, ReviewsRequest,
             FeedbackSubmit, FeedbackApprove, FeedbackViewAll, PerformanceViewAll, PerformancePublish,
             ResourcesManage, ResourcesViewAll, ReportsView, ExpensesViewAll, PipView, PipManage,
-            MinutesManage
+            MinutesManage,
+            // HR owns the performance-management lifecycle.
+            CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
+            PromotionsManage, LearningManage, AnalyticsView
         },
 
         // Accountant: approves & sees all expenses (finance owner). No own-performance dashboard.
@@ -116,7 +135,9 @@ public static class Permissions
             ProjectsView, ProjectsCreate, ProjectsManage, MembersManage, DocumentsUpload,
             DocumentsDelete, CallsManage, StatusSubmit, StatusViewAll,
             ReviewsRequest, ReviewsSchedule, ReviewsSubmit,
-            FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage
+            FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage,
+            // Managers evaluate appraisals, assign goals, recommend promotions, assign training for their reports.
+            AppraisalsManage, GoalsAssign, PromotionsRecommend, LearningManage
         },
 
         // Project Coordinator: same delivery capabilities as PM (may create projects, per business decision).
@@ -125,7 +146,8 @@ public static class Permissions
             ProjectsView, ProjectsCreate, ProjectsManage, MembersManage, DocumentsUpload,
             DocumentsDelete, CallsManage, StatusSubmit, StatusViewAll,
             ReviewsRequest, ReviewsSchedule, ReviewsSubmit,
-            FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage
+            FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage,
+            AppraisalsManage, GoalsAssign, PromotionsRecommend, LearningManage
         },
 
         PortalRole.TechnicalLead => new[]

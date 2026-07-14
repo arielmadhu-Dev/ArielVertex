@@ -120,4 +120,26 @@ public static class Mappers
             e.Vendor, e.ExpenseDate, e.PaymentMethod, e.InvoiceNumber, e.InvoiceStoragePath != null, e.InvoiceFileName,
             e.Status, Labels.ExpenseStatus(e.Status), e.ApprovalRequired, e.RaisedById, e.RaisedBy?.Name ?? "",
             e.Approver?.Name, e.DecidedAt, e.DecisionNote, e.PaidAt, e.CreatedAt, canApprove, canManage);
+
+    // ---- Performance management (appraisal cycles, appraisals, goals, promotions, training) ----
+    public static CycleDto ToDto(this AppraisalCycle c) =>
+        new(c.Id, c.Name, c.StartDate, c.EndDate, c.Status, c.Appraisals?.Count ?? 0, c.CreatedAt);
+
+    public static AppraisalDto ToDto(this Appraisal a) =>
+        new(a.Id, a.CycleId, a.Cycle?.Name ?? "", a.EmployeeId, a.Employee?.Name ?? "", a.Employee?.AvatarColor ?? "#1E7FD4",
+            a.ManagerId, a.Manager?.Name, a.Stage, a.SelfRating, a.SelfComments, a.SelfSubmittedAt,
+            a.ManagerRating, a.ManagerComments, a.ManagerReviewedAt, a.FinalRating, a.ReleasedAt, a.CreatedAt);
+
+    public static GoalDto ToDto(this Goal g) =>
+        new(g.Id, g.EmployeeId, g.Employee?.Name ?? "", g.Employee?.AvatarColor ?? "#1E7FD4", g.Title, g.Description,
+            g.Category, g.Weightage, g.Progress, g.TargetDate, g.Status, g.CycleId, g.AssignedBy?.Name, g.CreatedAt);
+
+    public static PromotionDto ToDto(this Promotion p) =>
+        new(p.Id, p.EmployeeId, p.Employee?.Name ?? "", p.Employee?.AvatarColor ?? "#1E7FD4", p.CurrentDesignation,
+            p.ProposedDesignation, p.CurrentSalary, p.ProposedSalary, p.Justification, p.Stage, p.DecisionNote,
+            p.RecommendedBy?.Name, p.ValidatedAt, p.ApprovedAt, p.CompletedAt, p.CreatedAt);
+
+    public static TrainingDto ToDto(this TrainingRecommendation t) =>
+        new(t.Id, t.EmployeeId, t.Employee?.Name ?? "", t.Employee?.AvatarColor ?? "#1E7FD4", t.SkillGap,
+            t.RecommendedTraining, t.DurationMonths, t.Status, t.Source, t.CreatedAt);
 }

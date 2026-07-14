@@ -24,6 +24,9 @@ import Configuration from './pages/Configuration'
 import NotificationsPage from './pages/NotificationsPage'
 import Admin from './pages/Admin'
 import Reports from './pages/Reports'
+import Cycles from './pages/Cycles'
+import Appraisals from './pages/Appraisals'
+import Goals from './pages/Goals'
 
 function Splash() {
   return (
@@ -72,6 +75,9 @@ export default function App() {
           <Route path="/configuration" element={<Configuration />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/appraisals" element={<Appraisals />} />
+          <Route path="/goals" element={<Goals />} />
+          <Route path="/cycles" element={<Cycles />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

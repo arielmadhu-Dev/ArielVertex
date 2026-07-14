@@ -35,10 +35,61 @@ public class AppDbContext : DbContext
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
     public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
     public DbSet<MeetingMinute> MeetingMinutes => Set<MeetingMinute>();
+    public DbSet<AppraisalCycle> AppraisalCycles => Set<AppraisalCycle>();
+    public DbSet<Appraisal> Appraisals => Set<Appraisal>();
+    public DbSet<Goal> Goals => Set<Goal>();
+    public DbSet<Promotion> Promotions => Set<Promotion>();
+    public DbSet<TrainingRecommendation> TrainingRecommendations => Set<TrainingRecommendation>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
+
+        b.Entity<AppraisalCycle>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedById).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<Appraisal>(e =>
+        {
+            e.HasIndex(x => new { x.CycleId, x.EmployeeId }).IsUnique();
+            e.Property(x => x.SelfComments).HasMaxLength(4000);
+            e.Property(x => x.ManagerComments).HasMaxLength(4000);
+            e.Property(x => x.SelfRating).HasPrecision(3, 2);
+            e.Property(x => x.ManagerRating).HasPrecision(3, 2);
+            e.Property(x => x.FinalRating).HasPrecision(3, 2);
+            e.HasOne(x => x.Cycle).WithMany(c => c.Appraisals).HasForeignKey(x => x.CycleId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Manager).WithMany().HasForeignKey(x => x.ManagerId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<Goal>(e =>
+        {
+            e.Property(x => x.Title).HasMaxLength(160);
+            e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.Category).HasMaxLength(80);
+            e.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.AssignedBy).WithMany().HasForeignKey(x => x.AssignedById).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.Cycle).WithMany(c => c.Goals).HasForeignKey(x => x.CycleId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<Promotion>(e =>
+        {
+            e.Property(x => x.CurrentDesignation).HasMaxLength(120);
+            e.Property(x => x.ProposedDesignation).HasMaxLength(120);
+            e.Property(x => x.Justification).HasMaxLength(2000);
+            e.Property(x => x.DecisionNote).HasMaxLength(2000);
+            e.Property(x => x.CurrentSalary).HasPrecision(14, 2);
+            e.Property(x => x.ProposedSalary).HasPrecision(14, 2);
+            e.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.RecommendedBy).WithMany().HasForeignKey(x => x.RecommendedById).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<TrainingRecommendation>(e =>
+        {
+            e.Property(x => x.SkillGap).HasMaxLength(160);
+            e.Property(x => x.RecommendedTraining).HasMaxLength(200);
+            e.Property(x => x.Source).HasMaxLength(20);
+            e.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedById).OnDelete(DeleteBehavior.SetNull);
+        });
 
         b.Entity<User>(e =>
         {

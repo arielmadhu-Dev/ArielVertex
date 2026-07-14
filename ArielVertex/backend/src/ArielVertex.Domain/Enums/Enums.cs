@@ -63,6 +63,23 @@ public enum ReviewRequestStatus { Open = 0, Scheduled = 1, InProgress = 2, Compl
 /// <summary>Portal-level RSVP for a scheduled review meeting so HR can track attendance in-app.</summary>
 public enum MeetingResponse { NoResponse = 0, Accepted = 1, Declined = 2, Tentative = 3 }
 
+// ---- Performance Management (ported from PMS): appraisal cycles, goals, promotions, learning ----
+
+/// <summary>Lifecycle of an appraisal cycle (e.g. "Q1 2026 Appraisal").</summary>
+public enum CycleStatus { Draft = 0, Active = 1, Closed = 2 }
+
+/// <summary>Self Assessment → Manager Evaluation → Final Rating Release.</summary>
+public enum AppraisalStage { SelfPending = 0, SelfSubmitted = 1, ManagerCompleted = 2, Released = 3 }
+
+/// <summary>Goal / KRA progress lifecycle.</summary>
+public enum GoalStatus { NotStarted = 0, InProgress = 1, Completed = 2, Cancelled = 3 }
+
+/// <summary>Promotion &amp; increment approval chain: Manager → HR → Leadership → Complete.</summary>
+public enum PromotionStage { ManagerRecommended = 0, HrValidated = 1, LeadershipApproved = 2, Completed = 3, Rejected = 4 }
+
+/// <summary>Training recommendation lifecycle.</summary>
+public enum TrainingStatus { Recommended = 0, InProgress = 1, Completed = 2 }
+
 /// <summary>Structured-feedback lifecycle (spec 6.8) — nothing reaches an employee un-approved.</summary>
 public enum FeedbackStatus { Draft = 0, Submitted = 1, RevisionRequested = 2, Approved = 3, Published = 4 }
 
@@ -131,5 +148,7 @@ public enum AuditAction
     ExpenseCreated = 16, ExpensePaymentRequested = 17, ExpenseApproved = 18,
     ExpenseRejected = 19, ExpensePaid = 20, ExpenseSettingsChanged = 21,
     PipTriggered = 22, PipUpdated = 23, ConfigChanged = 24, TemplateChanged = 25,
-    MinutesGenerated = 26, MinutesApproved = 27, MinutesSent = 28
+    MinutesGenerated = 26, MinutesApproved = 27, MinutesSent = 28,
+    CycleCreated = 29, CycleActivated = 30, CycleClosed = 31, AppraisalReleased = 32,
+    GoalAssigned = 33, PromotionRecommended = 34, PromotionDecided = 35, TrainingAssigned = 36
 }
