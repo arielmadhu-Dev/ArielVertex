@@ -189,28 +189,35 @@ public class ProjectsController : ApiControllerBase
     /// <summary>Upload a real file into private storage (spec 6.4). Type/size validated by IFileStorage.</summary>
     [HttpPost("{id:int}/documents/upload")]
     [Capability(Permissions.DocumentsUpload)]
+    [Consumes("multipart/form-data")]
     [RequestSizeLimit(30_000_000)]
-    public async Task<IActionResult> UploadDocument(int id, [FromForm] IFormFile? file, [FromForm] string title,
-        [FromForm] string? description, [FromForm] DocumentCategory category, [FromForm] Visibility visibility)
+    public async Task<IActionResult> UploadDocument(int id, [FromForm] UploadProjectDocumentRequest req)
     {
         if (!await _access.CanViewAsync(id)) return Denied();
-        if (file is null || file.Length == 0) return BadInput("Please choose a file to upload.");
-        if (string.IsNullOrWhiteSpace(title)) return BadInput("A title is required.");
+        if (req.File is null || req.File.Length == 0) return BadInput("Please choose a file to upload.");
+        if (string.IsNullOrWhiteSpace(req.Title)) return BadInput("A title is required.");
 
         StoredFile stored;
         try
         {
-            await using var stream = file.OpenReadStream();
-            stored = await _files.SaveAsync(stream, file.FileName, file.ContentType);
+            await using var stream = req.File.OpenReadStream();
+            stored = await _files.SaveAsync(stream, req.File.FileName, req.File.ContentType);
         }
         catch (FileValidationException ex) { return BadInput(ex.Message); }
 
         var doc = new ProjectDocument
         {
-            ProjectId = id, Title = title.Trim(), Description = description?.Trim() ?? "",
-            Category = category, Visibility = visibility, IsVideoLink = false,
-            FileName = stored.OriginalName, ContentType = stored.ContentType, SizeBytes = stored.SizeBytes,
-            StoragePath = stored.StorageKey, UploadedById = _me.Id
+            ProjectId = id,
+            Title = req.Title.Trim(),
+            Description = req.Description?.Trim() ?? "",
+            Category = req.Category,
+            Visibility = req.Visibility,
+            IsVideoLink = false,
+            FileName = stored.OriginalName,
+            ContentType = stored.ContentType,
+            SizeBytes = stored.SizeBytes,
+            StoragePath = stored.StorageKey,
+            UploadedById = _me.Id
         };
         _db.ProjectDocuments.Add(doc);
         await _db.SaveChangesAsync();
@@ -325,5 +332,17 @@ public class ProjectsController : ApiControllerBase
         if (isBusiness)
             return Ok(updates.Select(s => s.ToBusinessDto()));   // consolidated, no internal notes/blockers
         return Ok(updates.Select(s => s.ToDto(canSeeInternal)));
+
     }
 }
+
+
+public class UploadProjectDocumentRequest
+{
+    public IFormFile? File { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DocumentCategory Category { get; set; }
+    public Visibility Visibility { get; set; }
+}
+
