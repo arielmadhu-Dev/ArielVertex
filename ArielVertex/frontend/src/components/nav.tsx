@@ -7,7 +7,7 @@ import type { CurrentUser } from '../lib/types'
 
 // Capability strings — must match backend Permissions catalogue.
 export const P = {
-  ProjectsViewAll: 'projects.view.all', StatusSubmit: 'status.submit', StatusViewAll: 'status.view.all',
+  ProjectsViewAll: 'projects.view.all', ProjectsCreate: 'projects.create', StatusSubmit: 'status.submit', StatusViewAll: 'status.view.all',
   ReviewsRequest: 'reviews.request', ReviewsSchedule: 'reviews.schedule', ReviewsSubmit: 'reviews.submit',
   FeedbackSubmit: 'feedback.submit', FeedbackApprove: 'feedback.approve', PerformanceViewOwn: 'performance.view.own',
   PerformanceViewAll: 'performance.view.all', PerformancePublish: 'performance.publish',
