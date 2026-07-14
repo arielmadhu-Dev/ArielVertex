@@ -50,9 +50,10 @@ export interface ReviewRequest {
   assignedToName?: string; reviewType: string; status: string; notes: string; dueDate?: string
   closedAt?: string; createdAt: string; meeting?: ReviewMeeting; hasOutcome: boolean
 }
+export type MeetingResponse = 'NoResponse' | 'Accepted' | 'Declined' | 'Tentative'
 export interface ReviewMeeting {
   id: number; title: string; description: string; scheduledAt: string; durationMinutes: number
-  attendees: string; teamsJoinUrl?: string; outlookEventId?: string
+  attendees: string; teamsJoinUrl?: string; outlookEventId?: string; responseStatus: MeetingResponse
 }
 
 export interface CategoryScore { category: string; categoryName: string; score: number; notApplicable: boolean; comment: string }

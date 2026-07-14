@@ -95,6 +95,89 @@ public class ReviewsController : ApiControllerBase
         return Ok(new { meetingId = r.Meeting.Id, teamsJoinUrl = joinUrl, graphLive = _graph.IsLive });
     }
 
+    /// <summary>
+    /// Schedule one review event for one *or many* employees in a single action (#8, #9).
+    /// Creates the shared Outlook/Teams event that invites all selected employees, and a tracked
+    /// review record per employee so each appears in the portal and HR can follow up individually.
+    /// </summary>
+    [HttpPost("schedule")]
+    [Capability(Permissions.ReviewsRequest)]
+    public async Task<IActionResult> ScheduleGroup([FromBody] ScheduleGroupReviewRequest req)
+    {
+        if (!await _db.Projects.AnyAsync(p => p.Id == req.ProjectId)) return BadInput("Unknown project.");
+
+        var subjectIds = req.SubjectUserIds.Distinct().ToList();
+        var subjects = await _db.Users.Where(u => subjectIds.Contains(u.Id)).ToListAsync();
+        if (subjects.Count == 0) return BadInput("Select at least one employee.");
+
+        User? assignee = null;
+        if (req.AssignedToId is int aid)
+        {
+            assignee = await _db.Users.FindAsync(aid);
+            if (assignee is null) return BadInput("Unknown reviewer.");
+        }
+
+        var scheduledAt = req.ScheduledAt.ToUniversalTime();
+        var attendeeEmails = subjects.Select(s => s.Email)
+            .Concat(assignee is null ? Array.Empty<string>() : new[] { assignee.Email })
+            .Where(e => !string.IsNullOrWhiteSpace(e)).Distinct().ToList();
+
+        // One calendar event invites everyone (native Outlook accept/decline); each employee gets their own record.
+        var (eventId, joinUrl) = await _graph.CreateMeetingAsync(
+            req.Title, req.Description ?? "", scheduledAt, req.DurationMinutes, attendeeEmails);
+        var attendeesCsv = string.Join(", ", attendeeEmails);
+
+        foreach (var s in subjects)
+        {
+            _db.ReviewRequests.Add(new ReviewRequest
+            {
+                ProjectId = req.ProjectId, SubjectUserId = s.Id, RequestedById = _me.Id,
+                AssignedToId = req.AssignedToId, ReviewType = req.ReviewType,
+                Status = ReviewRequestStatus.Scheduled, Notes = req.Notes?.Trim() ?? "",
+                Meeting = new ReviewMeeting
+                {
+                    Title = req.Title.Trim(), Description = req.Description?.Trim() ?? "",
+                    ScheduledAt = scheduledAt, DurationMinutes = req.DurationMinutes,
+                    Attendees = attendeesCsv, OutlookEventId = eventId, TeamsJoinUrl = joinUrl,
+                    ScheduledById = _me.Id
+                }
+            });
+        }
+        await _db.SaveChangesAsync();
+
+        await _notify.NotifyManyAsync(subjects.Select(s => s.Id).ToArray(),
+            NotificationType.ReviewScheduled, "Review scheduled",
+            $"'{req.Title}' is scheduled. Please accept or decline in the portal.", "/reviews");
+        if (assignee is not null)
+            await _notify.NotifyAsync(assignee.Id, NotificationType.ReviewRequested, "Review to run",
+                $"You've been assigned to run '{req.Title}' for {subjects.Count} employee(s).", "/reviews");
+        await _audit.WriteAsync(AuditAction.ReviewScheduled, "ReviewRequest", 0,
+            $"{req.ReviewType} scheduled for {subjects.Count} employee(s): {req.Title}.");
+
+        return Ok(new { count = subjects.Count, teamsJoinUrl = joinUrl, graphLive = _graph.IsLive });
+    }
+
+    /// <summary>A review subject accepts/declines their scheduled review from inside the portal (#8).</summary>
+    [HttpPost("{id:int}/respond")]
+    public async Task<IActionResult> Respond(int id, [FromBody] RespondToReviewRequest req)
+    {
+        var r = await _db.ReviewRequests.Include(x => x.Meeting).FirstOrDefaultAsync(x => x.Id == id);
+        if (r is null) return Missing("Review request not found.");
+        if (r.SubjectUserId != _me.Id) return Denied("Only the review subject can respond to this invitation.");
+        if (r.Meeting is null) return BadInput("This review has not been scheduled yet.");
+
+        r.Meeting.ResponseStatus = req.Response;
+        r.Meeting.RespondedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        var who = string.IsNullOrWhiteSpace(_me.Name) ? "An employee" : _me.Name;
+        await _notify.NotifyAsync(r.RequestedById, NotificationType.ReviewScheduled,
+            $"Review {req.Response}",
+            $"{who} responded '{req.Response}' to the '{r.Meeting.Title}' review.", "/reviews");
+        await _audit.WriteAsync(AuditAction.ReviewScheduled, "ReviewMeeting", r.Meeting.Id, $"Subject responded: {req.Response}.");
+        return Ok(new { ok = true });
+    }
+
     [HttpPost("{id:int}/code-review")]
     [Capability(Permissions.ReviewsSubmit)]
     public async Task<IActionResult> SubmitCodeReview(int id, [FromBody] SubmitCodeReviewRequest req)

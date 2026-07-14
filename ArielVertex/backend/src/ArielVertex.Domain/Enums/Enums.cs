@@ -60,6 +60,9 @@ public enum ReviewType { ProjectReview = 0, CodeReview = 1, GeneralFeedback = 2 
 
 public enum ReviewRequestStatus { Open = 0, Scheduled = 1, InProgress = 2, Completed = 3, Cancelled = 4 }
 
+/// <summary>Portal-level RSVP for a scheduled review meeting so HR can track attendance in-app.</summary>
+public enum MeetingResponse { NoResponse = 0, Accepted = 1, Declined = 2, Tentative = 3 }
+
 /// <summary>Structured-feedback lifecycle (spec 6.8) — nothing reaches an employee un-approved.</summary>
 public enum FeedbackStatus { Draft = 0, Submitted = 1, RevisionRequested = 2, Approved = 3, Published = 4 }
 

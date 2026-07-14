@@ -49,7 +49,7 @@ public static class Mappers
 
     // ---- Reviews ----
     public static ReviewMeetingDto ToDto(this ReviewMeeting m) =>
-        new(m.Id, m.Title, m.Description, m.ScheduledAt, m.DurationMinutes, m.Attendees, m.TeamsJoinUrl, m.OutlookEventId);
+        new(m.Id, m.Title, m.Description, m.ScheduledAt, m.DurationMinutes, m.Attendees, m.TeamsJoinUrl, m.OutlookEventId, m.ResponseStatus);
 
     public static ReviewRequestDto ToDto(this ReviewRequest r) =>
         new(r.Id, r.ProjectId, r.Project?.Name ?? "", r.SubjectUserId, r.SubjectUser?.Name ?? "",
