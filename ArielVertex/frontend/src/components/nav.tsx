@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, FolderKanban, ClipboardCheck, MessageSquareQuote, LineChart,
   UsersRound, UserPlus, GaugeCircle, FileBarChart, ShieldCheck, CalendarClock, Gauge, Wallet,
-  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, LucideIcon,
+  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart, LucideIcon,
 } from 'lucide-react'
 import type { CurrentUser } from '../lib/types'
 
@@ -56,6 +56,9 @@ export const navGroups: NavGroup[] = [
       { to: '/appraisals', label: 'Appraisals', icon: Award, show: () => true },
       { to: '/goals', label: 'Goals & KRAs', icon: Target, show: () => true },
       { to: '/cycles', label: 'Appraisal Cycles', icon: CalendarRange, show: (u) => any(u, P.CyclesManage) },
+      { to: '/promotions', label: 'Promotions', icon: TrendingUp, show: (u) => any(u, P.PromotionsRecommend, P.PromotionsApprove, P.PromotionsManage) },
+      { to: '/learning', label: 'Learning', icon: GraduationCap, show: () => true },
+      { to: '/analytics', label: 'Talent Analytics', icon: PieChart, show: (u) => any(u, P.AnalyticsView) },
     ],
   },
   {

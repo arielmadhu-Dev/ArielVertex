@@ -123,6 +123,19 @@ export interface Goal {
   status: 'NotStarted' | 'InProgress' | 'Completed' | 'Cancelled'
   cycleId?: number; assignedByName?: string; createdAt: string
 }
+export type PromotionStage = 'ManagerRecommended' | 'HrValidated' | 'LeadershipApproved' | 'Completed' | 'Rejected'
+export interface Promotion {
+  id: number; employeeId: number; employeeName: string; avatarColor: string
+  currentDesignation: string; proposedDesignation: string; currentSalary?: number; proposedSalary?: number
+  justification: string; stage: PromotionStage; decisionNote?: string; recommendedByName?: string
+  validatedAt?: string; approvedAt?: string; completedAt?: string; createdAt: string
+}
+export interface Training {
+  id: number; employeeId: number; employeeName: string; avatarColor: string; skillGap: string
+  recommendedTraining: string; durationMonths: number
+  status: 'Recommended' | 'InProgress' | 'Completed'; source: string; createdAt: string
+}
+export interface SearchResult { type: string; id: number; title: string; subtitle: string; link: string }
 
 export interface ExpenseItem {
   id: number; title: string; description: string; category: string; categoryLabel: string
