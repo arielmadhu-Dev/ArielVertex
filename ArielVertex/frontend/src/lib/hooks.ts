@@ -7,6 +7,8 @@ interface Enums {
   priorities: EnumOption[]; reviewTypes: EnumOption[]; resourceStatuses: EnumOption[]
   documentCategories: EnumOption[]; visibilities: EnumOption[]; updateStatuses: EnumOption[]; callTypes: EnumOption[]
   expenseCategories: EnumOption[]; expenseStatuses: EnumOption[]
+  cycleStatuses: EnumOption[]; appraisalStages: EnumOption[]; goalStatuses: EnumOption[]
+  promotionStages: EnumOption[]; trainingStatuses: EnumOption[]; goalCategories: EnumOption[]
 }
 
 export function useEnums() {

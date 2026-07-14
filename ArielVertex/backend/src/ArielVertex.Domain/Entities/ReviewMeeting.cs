@@ -1,4 +1,5 @@
 using ArielVertex.Domain.Common;
+using ArielVertex.Domain.Enums;
 
 namespace ArielVertex.Domain.Entities;
 
@@ -16,6 +17,10 @@ public class ReviewMeeting : BaseEntity
 
     public string? OutlookEventId { get; set; }
     public string? TeamsJoinUrl { get; set; }
+
+    /// <summary>Portal RSVP by the review subject — feeds HR's attendance tracking.</summary>
+    public MeetingResponse ResponseStatus { get; set; } = MeetingResponse.NoResponse;
+    public DateTime? RespondedAt { get; set; }
 
     public int ScheduledById { get; set; }
     public User? ScheduledBy { get; set; }

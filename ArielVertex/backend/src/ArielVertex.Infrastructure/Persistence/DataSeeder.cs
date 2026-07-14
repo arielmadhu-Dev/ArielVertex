@@ -338,6 +338,45 @@ public static class DataSeeder
         };
         db.MeetingMinutes.AddRange(mmSent, mmDraft);
 
+        // ---- Performance management (appraisal cycle, appraisals, goals, promotion, training) ----
+        var cycle = new AppraisalCycle
+        {
+            Name = "Q3 2026 Appraisal", StartDate = now.AddDays(-20), EndDate = now.AddDays(20),
+            Status = CycleStatus.Active, CreatedById = manita.Id
+        };
+        db.AppraisalCycles.Add(cycle);
+        db.Appraisals.AddRange(
+            new Appraisal { Cycle = cycle, EmployeeId = rahul.Id, ManagerId = sudhir.Id, Stage = AppraisalStage.SelfPending },
+            new Appraisal { Cycle = cycle, EmployeeId = priya.Id, ManagerId = sudhir.Id, Stage = AppraisalStage.SelfSubmitted,
+                SelfRating = 4.0m, SelfComments = "Delivered the reporting module ahead of schedule.", SelfSubmittedAt = now.AddDays(-3) },
+            new Appraisal { Cycle = cycle, EmployeeId = sneha.Id, ManagerId = sudhir.Id, Stage = AppraisalStage.ManagerCompleted,
+                SelfRating = 3.5m, SelfComments = "Improved automation coverage.", SelfSubmittedAt = now.AddDays(-6),
+                ManagerRating = 3.8m, ManagerComments = "Strong quality focus; grow on API testing depth.", ManagerReviewedAt = now.AddDays(-2) },
+            new Appraisal { Cycle = cycle, EmployeeId = vikram.Id, ManagerId = sudhir.Id, Stage = AppraisalStage.Released,
+                SelfRating = 4.0m, SelfSubmittedAt = now.AddDays(-8), ManagerRating = 4.2m, ManagerReviewedAt = now.AddDays(-4),
+                FinalRating = 4.2m, ReleasedAt = now.AddDays(-1) }
+        );
+        db.Goals.AddRange(
+            new Goal { EmployeeId = rahul.Id, AssignedById = sudhir.Id, Cycle = cycle, Title = "Ship the billing API v2",
+                Description = "Design and deliver v2 with full test coverage.", Category = "Project Delivery", Weightage = 40, Progress = 55,
+                TargetDate = now.AddDays(35), Status = GoalStatus.InProgress },
+            new Goal { EmployeeId = rahul.Id, AssignedById = sudhir.Id, Cycle = cycle, Title = "Level up on system design",
+                Category = "Technical Growth", Weightage = 30, Progress = 20, TargetDate = now.AddDays(60), Status = GoalStatus.InProgress },
+            new Goal { EmployeeId = priya.Id, AssignedById = sudhir.Id, Cycle = cycle, Title = "Own the design system",
+                Category = "Quality & Ownership", Weightage = 50, Progress = 70, TargetDate = now.AddDays(30), Status = GoalStatus.InProgress }
+        );
+        db.Promotions.Add(new Promotion
+        {
+            EmployeeId = priya.Id, RecommendedById = sudhir.Id, CurrentDesignation = "Software Engineer",
+            ProposedDesignation = "Senior Software Engineer", ProposedSalary = 1400000m,
+            Justification = "Consistently exceeds delivery expectations and mentors juniors.", Stage = PromotionStage.ManagerRecommended
+        });
+        db.TrainingRecommendations.Add(new TrainingRecommendation
+        {
+            EmployeeId = rahul.Id, CreatedById = sudhir.Id, SkillGap = "System Design",
+            RecommendedTraining = "Distributed Systems fundamentals", DurationMonths = 3, Status = TrainingStatus.Recommended, Source = "AI"
+        });
+
         db.AuditLogs.Add(new AuditLog { ActorName = "system", Action = AuditAction.EmployeeSyncRun, EntityType = "Sync", Summary = "Initial seed dataset created." });
         db.MicrosoftSyncLogs.Add(new MicrosoftSyncLog { RunAt = now.AddDays(-1), Status = SyncStatus.Success, Created = 0, Updated = 0, WasManual = false, TriggeredBy = "system", Message = "Directory sync disabled (local mode)." });
         await db.SaveChangesAsync();

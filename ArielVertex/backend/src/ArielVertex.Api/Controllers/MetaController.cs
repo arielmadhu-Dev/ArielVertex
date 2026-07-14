@@ -28,6 +28,21 @@ public class MetaController : ApiControllerBase
         updateStatuses = Opts<UpdateStatus>(s => System.Text.RegularExpressions.Regex.Replace(s.ToString(), "(?<=[a-z])(?=[A-Z])", " ")),
         callTypes = Opts<CallType>(t => t.ToString()),
         expenseCategories = Opts<ExpenseCategory>(Labels.ExpenseCategory),
-        expenseStatuses = Opts<ExpenseStatus>(Labels.ExpenseStatus)
+        expenseStatuses = Opts<ExpenseStatus>(Labels.ExpenseStatus),
+        // Performance-management enums (ported modules)
+        cycleStatuses = Opts<CycleStatus>(s => s.ToString()),
+        appraisalStages = Opts<AppraisalStage>(s => System.Text.RegularExpressions.Regex.Replace(s.ToString(), "(?<=[a-z])(?=[A-Z])", " ")),
+        goalStatuses = Opts<GoalStatus>(s => System.Text.RegularExpressions.Regex.Replace(s.ToString(), "(?<=[a-z])(?=[A-Z])", " ")),
+        promotionStages = Opts<PromotionStage>(s => System.Text.RegularExpressions.Regex.Replace(s.ToString(), "(?<=[a-z])(?=[A-Z])", " ")),
+        trainingStatuses = Opts<TrainingStatus>(s => s.ToString()),
+        goalCategories = new object[]
+        {
+            new { value = "Project Delivery", label = "Project Delivery" },
+            new { value = "Technical Growth", label = "Technical Growth" },
+            new { value = "Quality & Ownership", label = "Quality & Ownership" },
+            new { value = "Collaboration", label = "Collaboration" },
+            new { value = "Leadership", label = "Leadership" },
+            new { value = "Process & Compliance", label = "Process & Compliance" }
+        }
     });
 }

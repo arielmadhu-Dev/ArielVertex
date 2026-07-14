@@ -2,7 +2,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './lib/auth'
 import { VertexMark } from './ui/Logo'
 import { AppLayout } from './components/AppLayout'
-import { AppErrorBoundary } from './components/AppErrorBoundary'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
@@ -24,6 +24,12 @@ import Configuration from './pages/Configuration'
 import NotificationsPage from './pages/NotificationsPage'
 import Admin from './pages/Admin'
 import Reports from './pages/Reports'
+import Cycles from './pages/Cycles'
+import Appraisals from './pages/Appraisals'
+import Goals from './pages/Goals'
+import Promotions from './pages/Promotions'
+import Learning from './pages/Learning'
+import Analytics from './pages/Analytics'
 
 function Splash() {
   return (
@@ -49,8 +55,8 @@ export default function App() {
   const location = useLocation()
 
   return (
-    <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>
-      <Routes>
+    <ErrorBoundary resetKey={loc.pathname}>
+    <Routes>
         <Route path="/login" element={user && !loading ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/report/:id" element={<Protected><PerformanceReportPrint /></Protected>} />
         <Route path="/reports/print" element={<Protected><ManagementReportPrint /></Protected>} />
@@ -72,10 +78,16 @@ export default function App() {
           <Route path="/configuration" element={<Configuration />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/appraisals" element={<Appraisals />} />
+          <Route path="/goals" element={<Goals />} />
+          <Route path="/cycles" element={<Cycles />} />
+          <Route path="/promotions" element={<Promotions />} />
+          <Route path="/learning" element={<Learning />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
-      </Routes>
-    </AppErrorBoundary>
+    </Routes>
+    </ErrorBoundary>
   )
 }

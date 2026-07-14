@@ -11,7 +11,22 @@ public record ReviewRequestDto(
 
 public record ReviewMeetingDto(
     int Id, string Title, string Description, DateTime ScheduledAt, int DurationMinutes,
-    string Attendees, string? TeamsJoinUrl, string? OutlookEventId);
+    string Attendees, string? TeamsJoinUrl, string? OutlookEventId, MeetingResponse ResponseStatus);
+
+/// <summary>Schedule one review event for one *or many* employees at once (spec 6.7 / #8, #9).</summary>
+public record ScheduleGroupReviewRequest(
+    [Required] int ProjectId,
+    [Required, MinLength(1)] List<int> SubjectUserIds,
+    int? AssignedToId,
+    ReviewType ReviewType,
+    [Required] string Title,
+    string? Description,
+    [Required] DateTime ScheduledAt,
+    [Range(15, 240)] int DurationMinutes,
+    [MaxLength(2000)] string? Notes);
+
+/// <summary>A review subject accepting/declining their scheduled review from inside the portal.</summary>
+public record RespondToReviewRequest([Required] MeetingResponse Response);
 
 public record CreateReviewRequestRequest(
     [Required] int ProjectId,

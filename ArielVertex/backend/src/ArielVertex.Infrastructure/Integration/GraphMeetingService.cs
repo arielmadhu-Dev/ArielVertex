@@ -31,13 +31,14 @@ public class GraphMeetingService : IGraphMeetingService
         {
             try
             {
-                var meeting = await _graph.CreateEventAsync(title, description, scheduledAt.ToUniversalTime(), durationMinutes, attendeeEmails, ct);
-                if (!string.IsNullOrWhiteSpace(meeting.joinUrl)) return meeting;
-                _log.LogWarning("Graph meeting creation returned an empty Teams join URL; using placeholder meeting link.");
+                return await _graph.CreateEventAsync(title, description, scheduledAt.ToUniversalTime(), durationMinutes, attendeeEmails, ct);
             }
             catch (Exception ex)
             {
-                _log.LogWarning(ex, "Graph meeting creation failed; using placeholder meeting link.");
+                // Calendar creation is best-effort: a Graph outage or missing consent (e.g. 403) must
+                // not fail the review workflow. Fall through to a placeholder link so the review record
+                // and portal notifications are still created; the invite can be re-sent once Graph is fixed.
+                _log.LogWarning(ex, "Graph meeting creation failed for '{Title}'; falling back to placeholder link.", title);
             }
         }
 
