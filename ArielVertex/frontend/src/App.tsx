@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './lib/auth'
 import { VertexMark } from './ui/Logo'
 import { AppLayout } from './components/AppLayout'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
@@ -45,8 +46,10 @@ function Protected({ children }: { children: JSX.Element }) {
 
 export default function App() {
   const { user, loading } = useAuth()
+  const loc = useLocation()
 
   return (
+    <ErrorBoundary resetKey={loc.pathname}>
     <Routes>
         <Route path="/login" element={user && !loading ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/report/:id" element={<Protected><PerformanceReportPrint /></Protected>} />
@@ -73,5 +76,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
     </Routes>
+    </ErrorBoundary>
   )
 }

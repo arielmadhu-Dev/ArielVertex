@@ -18,13 +18,20 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// On 401 the token is stale/absent — bounce to login (route guard picks it up).
+// On 401 for an *established* session the token is stale — bounce to login (route guard picks it up).
+// We only do this when a token was actually present and the failing call is not the login/SSO
+// exchange itself; otherwise a wrong-password attempt or a stray background 401 would wipe the
+// session and blank the current page.
 let onUnauthorized: (() => void) | null = null
 export const setUnauthorizedHandler = (fn: () => void) => { onUnauthorized = fn }
 api.interceptors.response.use(
   (r) => r,
   (err) => {
-    if (err?.response?.status === 401) { tokenStore.clear(); onUnauthorized?.() }
+    if (err?.response?.status === 401) {
+      const url: string = err.config?.url || ''
+      const isAuthExchange = url.includes('/auth/login') || url.includes('/auth/microsoft')
+      if (!isAuthExchange && tokenStore.get()) { tokenStore.clear(); onUnauthorized?.() }
+    }
     return Promise.reject(err)
   },
 )
