@@ -10,7 +10,7 @@ import { Card, StatusPill, Badge, Button, EmptyState } from '../ui/primitives'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/form'
 import { useToast } from '../ui/Toast'
-import { fmtDate } from '../ui/util'
+import { asArray, fmtDate } from '../ui/util'
 import { P } from '../components/nav'
 
 export default function Hiring() {
@@ -22,8 +22,16 @@ export default function Hiring() {
   const canManage = has(P.ResourcesManage)
 
   const { data } = useQuery({ queryKey: ['hiring'], queryFn: async () => (await api.get<ResourceRequestItem[]>('/resource-requests')).data })
-  const projects = useQuery({ queryKey: ['projects', ''], queryFn: async () => (await api.get('/projects', { params: { pageSize: 50 } })).data.items as any[] })
+  const projects = useQuery({
+    queryKey: ['projects', 'options', 'hiring'],
+    queryFn: async () => asArray((await api.get('/projects', { params: { pageSize: 50 } })).data?.items) as any[],
+    enabled: open,
+  })
   const invalidate = () => qc.invalidateQueries({ queryKey: ['hiring'] })
+  const hiringRequests = asArray(data)
+  const projectOptions = asArray(projects.data)
+  const resourceStatusOptions = asArray(enums.data?.resourceStatuses)
+  const priorityOptions = asArray(enums.data?.priorities)
 
   const [form, setForm] = useState({ projectId: 0, roleTitle: '', skills: '', reason: '', priority: 'Medium', count: 1, expectedStartDate: '' })
   const create = useMutation({
@@ -42,9 +50,9 @@ export default function Hiring() {
       <PageHeader title="Hiring Requests" subtitle="Resource requests from projects, tracked by HR" icon={<UserPlus className="h-5 w-5" />}
         actions={has(P.ResourcesRequest) ? <Button icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)}>Raise request</Button> : undefined} />
 
-      {data?.length ? (
+      {hiringRequests.length ? (
         <div className="space-y-3">
-          {data.map((r) => (
+          {hiringRequests.map((r) => (
             <Card key={r.id} className="p-5">
               <div className="flex flex-wrap items-start gap-4">
                 <div className="min-w-0 flex-1">
@@ -60,7 +68,7 @@ export default function Hiring() {
                 </div>
                 {canManage && (
                   <Select value={r.status} onChange={(e) => setStatus.mutate({ id: r.id, status: e.target.value })} className="w-48">
-                    {enums.data?.resourceStatuses.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    {resourceStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </Select>
                 )}
               </div>
@@ -72,10 +80,10 @@ export default function Hiring() {
       <Modal open={open} onClose={() => setOpen(false)} title="Raise resource request"
         footer={<><Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button><Button loading={create.isPending} disabled={!form.projectId || !form.roleTitle} onClick={() => create.mutate()}>Submit request</Button></>}>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Project" required><Select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>Select…</option>{projects.data?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
+          <Field label="Project" required><Select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>Select…</option>{projectOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
           <Field label="Role title" required><Input value={form.roleTitle} onChange={(e) => setForm({ ...form, roleTitle: e.target.value })} placeholder="Senior React Developer" /></Field>
           <Field label="Count"><Input type="number" min={1} value={form.count} onChange={(e) => setForm({ ...form, count: Number(e.target.value) })} /></Field>
-          <Field label="Priority"><Select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>{enums.data?.priorities.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select></Field>
+          <Field label="Priority"><Select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>{priorityOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select></Field>
           <div className="sm:col-span-2"><Field label="Skills"><Input value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} placeholder="React, TypeScript…" /></Field></div>
           <Field label="Expected start"><Input type="date" value={form.expectedStartDate} onChange={(e) => setForm({ ...form, expectedStartDate: e.target.value })} /></Field>
           <div className="sm:col-span-2"><Field label="Reason"><Textarea value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} /></Field></div>

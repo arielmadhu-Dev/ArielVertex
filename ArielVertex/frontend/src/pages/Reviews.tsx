@@ -11,10 +11,9 @@ import { Stars } from '../ui/widgets'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/form'
 import { useToast } from '../ui/Toast'
-import { fmtDate, fmtDateTime } from '../ui/util'
+import { asArray, asText, fmtDate, fmtDateTime, nice } from '../ui/util'
 import { P } from '../components/nav'
 
-const nice = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1 $2')
 
 export default function Reviews() {
   const { user, has } = useAuth()
@@ -27,18 +26,22 @@ export default function Reviews() {
   const [outcome, setOutcome] = useState<ReviewRequest | null>(null)
 
   const { data } = useQuery({ queryKey: ['reviews'], queryFn: async () => (await api.get<ReviewRequest[]>('/review-requests')).data })
-  const projects = useQuery({ queryKey: ['projects', ''], queryFn: async () => (await api.get('/projects', { params: { pageSize: 50 } })).data.items as any[] })
+  const projects = useQuery({
+    queryKey: ['projects', 'options', 'reviews'],
+    queryFn: async () => asArray((await api.get('/projects', { params: { pageSize: 50 } })).data?.items) as any[],
+  })
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['reviews'] })
+  const reviews = asArray(data)
 
   return (
     <div>
       <PageHeader title="Reviews" subtitle="Project & code reviews — request, schedule, and record outcomes" icon={<ClipboardCheck className="h-5 w-5" />}
         actions={has(P.ReviewsRequest) ? <Button icon={<Plus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>Request review</Button> : undefined} />
 
-      {data?.length ? (
+      {reviews.length ? (
         <div className="space-y-3">
-          {data.map((r) => {
+          {reviews.map((r) => {
             const canSchedule = has(P.ReviewsSchedule) && r.status !== 'Completed'
             const canSubmit = has(P.ReviewsSubmit) && r.assignedToId === user?.id && r.status !== 'Completed'
             return (
@@ -47,7 +50,7 @@ export default function Reviews() {
                   <Avatar name={r.subjectName} color={r.avatarColor} size={44} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-bold">{r.subjectName}</p>
+                      <p className="font-bold">{asText(r.subjectName, 'Unknown employee')}</p>
                       <Badge t="info">{nice(r.reviewType)}</Badge>
                       <StatusPill value={r.status} />
                     </div>
@@ -73,7 +76,7 @@ export default function Reviews() {
       ) : <Card><EmptyState icon={<ClipboardCheck className="h-6 w-6" />} title="No review requests" hint="HR can request project or code reviews for employees." /></Card>}
 
       {/* Create */}
-      <CreateReviewModal open={createOpen} onClose={() => setCreateOpen(false)} projects={projects.data ?? []} employees={employees.data ?? []} reviewTypes={enums.data?.reviewTypes ?? []} onDone={() => { invalidate(); setCreateOpen(false) }} push={push} />
+      <CreateReviewModal open={createOpen} onClose={() => setCreateOpen(false)} projects={asArray(projects.data)} employees={asArray(employees.data)} reviewTypes={asArray(enums.data?.reviewTypes)} onDone={() => { invalidate(); setCreateOpen(false) }} push={push} />
       {/* Schedule */}
       {schedule && <ScheduleModal req={schedule} onClose={() => setSchedule(null)} onDone={() => { invalidate(); setSchedule(null) }} push={push} />}
       {/* Outcome */}
@@ -84,6 +87,9 @@ export default function Reviews() {
 
 function CreateReviewModal({ open, onClose, projects, employees, reviewTypes, onDone, push }: any) {
   const [form, setForm] = useState({ projectId: 0, subjectUserId: 0, assignedToId: 0, reviewType: 'ProjectReview', notes: '', dueDate: '' })
+  const projectOptions = asArray(projects)
+  const employeeOptions = asArray(employees)
+  const reviewTypeOptions = asArray(reviewTypes)
   const create = useMutation({
     mutationFn: () => api.post('/review-requests', { ...form, assignedToId: form.assignedToId || null, dueDate: form.dueDate || null }),
     onSuccess: () => { push('Review requested — reviewer notified'); onDone() },
@@ -93,10 +99,10 @@ function CreateReviewModal({ open, onClose, projects, employees, reviewTypes, on
     <Modal open={open} onClose={onClose} title="Request a review" subtitle="Ask a PM/PC or Tech Lead to review an employee"
       footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button loading={create.isPending} disabled={!form.projectId || !form.subjectUserId} onClick={() => create.mutate()}>Send request</Button></>}>
       <div className="grid sm:grid-cols-2 gap-4">
-        <Field label="Project" required><Select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>Select…</option>{projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
-        <Field label="Review type"><Select value={form.reviewType} onChange={(e) => setForm({ ...form, reviewType: e.target.value })}>{reviewTypes.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select></Field>
-        <Field label="Employee" required><Select value={form.subjectUserId} onChange={(e) => setForm({ ...form, subjectUserId: Number(e.target.value) })}><option value={0}>Select…</option>{employees.map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}</Select></Field>
-        <Field label="Assign reviewer"><Select value={form.assignedToId} onChange={(e) => setForm({ ...form, assignedToId: Number(e.target.value) })}><option value={0}>Later…</option>{employees.map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}</Select></Field>
+        <Field label="Project" required><Select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>Select…</option>{projectOptions.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
+        <Field label="Review type"><Select value={form.reviewType} onChange={(e) => setForm({ ...form, reviewType: e.target.value })}>{reviewTypeOptions.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select></Field>
+        <Field label="Employee" required><Select value={form.subjectUserId} onChange={(e) => setForm({ ...form, subjectUserId: Number(e.target.value) })}><option value={0}>Select…</option>{employeeOptions.map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}</Select></Field>
+        <Field label="Assign reviewer"><Select value={form.assignedToId} onChange={(e) => setForm({ ...form, assignedToId: Number(e.target.value) })}><option value={0}>Later…</option>{employeeOptions.map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}</Select></Field>
         <Field label="Due date"><Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></Field>
         <div className="sm:col-span-2"><Field label="Notes"><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field></div>
       </div>
@@ -105,7 +111,7 @@ function CreateReviewModal({ open, onClose, projects, employees, reviewTypes, on
 }
 
 function ScheduleModal({ req, onClose, onDone, push }: any) {
-  const [form, setForm] = useState({ title: `${req.reviewType.replace(/([a-z])([A-Z])/g, '$1 $2')} — ${req.subjectName}`, scheduledAt: '', durationMinutes: 45, attendees: '' })
+  const [form, setForm] = useState({ title: `${nice(req.reviewType)} - ${asText(req.subjectName, 'Unknown employee')}`, scheduledAt: '', durationMinutes: 45, attendees: '' })
   const schedule = useMutation({
     mutationFn: () => api.post(`/review-requests/${req.id}/schedule`, form),
     onSuccess: (r: any) => { push(r.data.graphLive ? 'Scheduled in Teams/Outlook' : 'Scheduled — Teams link generated'); onDone() },
