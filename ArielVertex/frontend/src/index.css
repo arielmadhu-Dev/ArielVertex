@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --surface: #f6f8fc;
+  --card: #ffffff;
+  --line: #e7ecf5;
+  --ink: #17203E;
+  --muted: #64748b;
+}
+.dark {
+  --surface: #0c1228;
+  --card: #111935;
+  --line: #232f52;
+  --ink: #eef2fb;
+  --muted: #94a3b8;
+}
+
+html, body, #root { height: 100%; }
+body {
+  @apply antialiased;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Thin, brand-tinted scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(100,116,139,.35); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,.55); background-clip: content-box; }
+
+@layer components {
+  .av-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    @apply rounded-2xl shadow-card;
+  }
+  .av-input {
+    background: var(--card);
+    border: 1px solid var(--line);
+    @apply w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition;
+    color: var(--ink);
+  }
+  .av-input:focus { @apply ring-2 ring-brand-400/50 border-brand-400; }
+  .av-label { @apply text-xs font-semibold uppercase tracking-wide; color: var(--muted); }
+  .av-scroll-x { scrollbar-width: thin; }
+}
+
+/* Reusable gradient used for hero/brand surfaces */
+.av-brand-gradient { background: linear-gradient(135deg, #17203E 0%, #1b2c57 45%, #1E7FD4 130%); }
+.av-mesh {
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(30,127,212,.18), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(30,127,212,.12), transparent 55%),
+    var(--surface);
+}

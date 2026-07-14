@@ -1,0 +1,17 @@
+# Backend
+**/bin/
+**/obj/
+*.db
+*.db-shm
+*.db-wal
+storage/
+App_Data/
+
+# Frontend
+node_modules/
+dist/
+.vite/
+
+# Env / secrets
+.env.local
+*.user

@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: arielvertex
+      POSTGRES_USER: arielvertex
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-arielvertex}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arielvertex"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__Provider: Postgres
+      ConnectionStrings__Default: "Host=db;Database=arielvertex;Username=arielvertex;Password=${DB_PASSWORD:-arielvertex}"
+      Cors__Origins__0: ${PUBLIC_ORIGIN:-http://localhost:8080}
+      Jwt__Secret: ${JWT_SECRET:-change-me-in-production-please-rotate-0123456789abcdef}
+      Auth__Mode: ${AUTH_MODE:-Local}
+      Auth__AllowedDomain: ${ALLOWED_DOMAIN:-arielsoftwares.in}
+      Auth__SeedPassword: ${SEED_PASSWORD:-Ariel@123}
+      # ---- Microsoft 365 (set these + the Integration flags to go live) ----
+      AzureAd__TenantId: ${AZURE_TENANT_ID:-}
+      AzureAd__ClientId: ${AZURE_CLIENT_ID:-}
+      AzureAd__ClientSecret: ${AZURE_CLIENT_SECRET:-}
+      AzureAd__ServiceUser: ${AZURE_SERVICE_USER:-}
+      Integration__DirectorySyncLive: ${DIRECTORY_SYNC_LIVE:-false}
+      Integration__GraphMeetingsLive: ${GRAPH_MEETINGS_LIVE:-false}
+      Integration__OutlookNotificationsLive: ${OUTLOOK_NOTIFICATIONS_LIVE:-false}
+    volumes:
+      - uploads:/data/uploads
+
+  web:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  db-data:
+  uploads:

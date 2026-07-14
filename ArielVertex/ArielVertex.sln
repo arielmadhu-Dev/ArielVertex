@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{996230AD-57C4-49AB-B670-40BC4CAE4D74}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{22EDE2F1-1CCB-4CD0-A71E-C782C8294903}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArielVertex.Domain", "backend\src\ArielVertex.Domain\ArielVertex.Domain.csproj", "{466F4E26-5873-4F7A-8CA4-D945BBBE4E3D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArielVertex.Application", "backend\src\ArielVertex.Application\ArielVertex.Application.csproj", "{4B058A5C-E086-40FC-828A-6E9DA3D3177C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArielVertex.Infrastructure", "backend\src\ArielVertex.Infrastructure\ArielVertex.Infrastructure.csproj", "{DB63B5A8-AD08-4B3A-8CFE-017BA8382907}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArielVertex.Api", "backend\src\ArielVertex.Api\ArielVertex.Api.csproj", "{AD6AF82B-35EF-4451-B60B-D5230BC21238}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{466F4E26-5873-4F7A-8CA4-D945BBBE4E3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{466F4E26-5873-4F7A-8CA4-D945BBBE4E3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{466F4E26-5873-4F7A-8CA4-D945BBBE4E3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{466F4E26-5873-4F7A-8CA4-D945BBBE4E3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B058A5C-E086-40FC-828A-6E9DA3D3177C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B058A5C-E086-40FC-828A-6E9DA3D3177C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B058A5C-E086-40FC-828A-6E9DA3D3177C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B058A5C-E086-40FC-828A-6E9DA3D3177C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB63B5A8-AD08-4B3A-8CFE-017BA8382907}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB63B5A8-AD08-4B3A-8CFE-017BA8382907}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB63B5A8-AD08-4B3A-8CFE-017BA8382907}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB63B5A8-AD08-4B3A-8CFE-017BA8382907}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD6AF82B-35EF-4451-B60B-D5230BC21238}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD6AF82B-35EF-4451-B60B-D5230BC21238}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD6AF82B-35EF-4451-B60B-D5230BC21238}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD6AF82B-35EF-4451-B60B-D5230BC21238}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{22EDE2F1-1CCB-4CD0-A71E-C782C8294903} = {996230AD-57C4-49AB-B670-40BC4CAE4D74}
+		{466F4E26-5873-4F7A-8CA4-D945BBBE4E3D} = {22EDE2F1-1CCB-4CD0-A71E-C782C8294903}
+		{4B058A5C-E086-40FC-828A-6E9DA3D3177C} = {22EDE2F1-1CCB-4CD0-A71E-C782C8294903}
+		{DB63B5A8-AD08-4B3A-8CFE-017BA8382907} = {22EDE2F1-1CCB-4CD0-A71E-C782C8294903}
+		{AD6AF82B-35EF-4451-B60B-D5230BC21238} = {22EDE2F1-1CCB-4CD0-A71E-C782C8294903}
+	EndGlobalSection
+EndGlobal
