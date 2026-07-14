@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
 import { useAuth } from './lib/auth'
 import { VertexMark } from './ui/Logo'
 import { AppLayout } from './components/AppLayout'
@@ -46,11 +45,9 @@ function Protected({ children }: { children: JSX.Element }) {
 
 export default function App() {
   const { user, loading } = useAuth()
-  const loc = useLocation()
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={loc} key={loc.pathname}>
+    <Routes>
         <Route path="/login" element={user && !loading ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/report/:id" element={<Protected><PerformanceReportPrint /></Protected>} />
         <Route path="/reports/print" element={<Protected><ManagementReportPrint /></Protected>} />
@@ -75,7 +72,6 @@ export default function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
-      </Routes>
-    </AnimatePresence>
+    </Routes>
   )
 }

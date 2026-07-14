@@ -38,7 +38,7 @@ export default function Projects() {
   return (
     <div>
       <PageHeader title="Projects" subtitle="Every project you can access, scoped to your role" icon={<FolderKanban className="h-5 w-5" />}
-        actions={has(P.ProjectsViewAll) || has('projects.create') ? (
+        actions={has(P.ProjectsCreate) ? (
           <Button icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)}>New Project</Button>
         ) : undefined} />
 

@@ -74,12 +74,14 @@ public class ExpensesController : ApiControllerBase
 
     [HttpPost("{id:int}/invoice")]
     [Capability(Permissions.ExpensesManage)]
+    [Consumes("multipart/form-data")]
     [RequestSizeLimit(30_000_000)]
-    public async Task<IActionResult> UploadInvoice(int id, [FromForm] IFormFile? file)
+    public async Task<IActionResult> UploadInvoice(int id, [FromForm] UploadExpenseInvoiceRequest req)
     {
         var e = await _db.Expenses.FindAsync(id);
         if (e is null) return Missing();
         if (e.RaisedById != _me.Id && !CanViewAll) return Denied();
+        var file = req.File;
         if (file is null || file.Length == 0) return BadInput("Choose an invoice file.");
         try
         {
@@ -163,4 +165,8 @@ public class ExpensesController : ApiControllerBase
             await _notify.NotifyManyAsync(approverIds, NotificationType.General, "Expense needs approval",
                 $"'{e.Title}' (₹{e.Amount}) is awaiting your approval.", "/expenses");
     }
+}
+public class UploadExpenseInvoiceRequest
+{
+    public IFormFile? File { get; set; }
 }
