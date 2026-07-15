@@ -150,5 +150,6 @@ public enum AuditAction
     PipTriggered = 22, PipUpdated = 23, ConfigChanged = 24, TemplateChanged = 25,
     MinutesGenerated = 26, MinutesApproved = 27, MinutesSent = 28,
     CycleCreated = 29, CycleActivated = 30, CycleClosed = 31, AppraisalReleased = 32,
-    GoalAssigned = 33, PromotionRecommended = 34, PromotionDecided = 35, TrainingAssigned = 36
+    GoalAssigned = 33, PromotionRecommended = 34, PromotionDecided = 35, TrainingAssigned = 36,
+    EmployeeUpdated = 37
 }

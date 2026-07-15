@@ -21,7 +21,9 @@ public static class Mappers
 
     public static UserListItemDto ToListItem(this User u) =>
         new(u.Id, u.Name, u.Email, u.EmployeeCode, u.Role, Labels.Role(u.Role), u.Designation,
-            u.Department?.Name, u.AvatarColor, u.Status, u.Manager?.Name, u.JoiningDate);
+            u.DepartmentId, u.Department?.Name, u.AvatarColor, u.Status, u.ManagerId, u.Manager?.Name,
+            u.JoiningDate, u.Skills, u.IsProvisionedFromEntra, u.ProfileManagedLocally,
+            u.ManagerManagedLocally, u.LastSyncedAt);
 
     // ---- Projects ----
     public static ProjectListItemDto ToListItem(this Project p, int memberCount, string? myRole) =>
@@ -35,7 +37,7 @@ public static class Mappers
     public static ProjectDetailDto ToDetail(this Project p, bool canManage, string? myRole) =>
         new(p.Id, p.Code, p.Name, p.Description, p.Status, p.Health, p.Priority, p.StartDate,
             p.ExpectedEndDate, p.ClientName, p.BusinessOwner, SplitTags(p.Tags), p.Notes,
-            p.Members.Select(m => m.ToDto()).OrderBy(m => m.RoleOnProject).ToList(), canManage, myRole);
+            p.Members.Where(m => m.IsActive).Select(m => m.ToDto()).OrderBy(m => m.RoleOnProject).ToList(), canManage, myRole);
 
     // ---- Status updates ----
     public static StatusUpdateDto ToDto(this StatusUpdate s, bool includeInternal) =>

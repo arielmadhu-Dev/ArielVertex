@@ -14,6 +14,15 @@ import { useToast } from '../ui/Toast'
 import { asArray, asText, fmtDate, fmtDateTime, nice } from '../ui/util'
 import { P } from '../components/nav'
 
+function isWorkingTeamsUrl(value?: string | null) {
+  if (!value || value.toLowerCase().includes('av-placeholder')) return false
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && url.hostname.toLowerCase() === 'teams.microsoft.com'
+  } catch {
+    return false
+  }
+}
 
 export default function Reviews() {
   const { user, has } = useAuth()
@@ -33,6 +42,7 @@ export default function Reviews() {
   })
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['reviews'] })
+  const reviews = asArray(data)
 
   const respond = useMutation({
     mutationFn: ({ id, response }: { id: number; response: string }) => api.post(`/review-requests/${id}/respond`, { response }),
@@ -59,6 +69,8 @@ export default function Reviews() {
             const isSubject = r.subjectUserId === user?.id
             const resp = r.meeting?.responseStatus
             const canRespond = isSubject && !!r.meeting && r.status !== 'Completed'
+            const joinUrl = r.meeting?.teamsJoinUrl
+            const hasWorkingJoinUrl = isWorkingTeamsUrl(joinUrl)
             return (
               <Card key={r.id} className="p-4">
                 <div className="flex flex-wrap items-center gap-4">
@@ -75,7 +87,8 @@ export default function Reviews() {
                       <div className="mt-2 flex items-center gap-2 flex-wrap text-xs">
                         <div className="inline-flex items-center gap-2 rounded-lg bg-brand-50 dark:bg-brand-900/40 px-2.5 py-1.5">
                           <span className="font-semibold">{fmtDateTime(r.meeting.scheduledAt)}</span>
-                          {r.meeting.teamsJoinUrl && <a href={r.meeting.teamsJoinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-600 font-semibold"><Video className="h-3.5 w-3.5" />Join</a>}
+                          {hasWorkingJoinUrl && <a href={joinUrl!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md bg-brand-500 px-2 py-1 text-white font-semibold hover:bg-brand-600"><Video className="h-3.5 w-3.5" />Join Teams</a>}
+                          {!!joinUrl && !hasWorkingJoinUrl && <Badge t="danger">Calendar link unavailable — reschedule</Badge>}
                         </div>
                         {resp && resp !== 'NoResponse' && <Badge t={respTone[resp]}>{resp}</Badge>}
                         {resp === 'NoResponse' && !isSubject && <Badge t="info">Awaiting response</Badge>}
@@ -141,7 +154,7 @@ function ScheduleModal({ req, onClose, onDone, push }: any) {
   const [form, setForm] = useState({ title: `${nice(req.reviewType)} - ${asText(req.subjectName, 'Unknown employee')}`, scheduledAt: '', durationMinutes: 45, attendees: '' })
   const schedule = useMutation({
     mutationFn: () => api.post(`/review-requests/${req.id}/schedule`, form),
-    onSuccess: (r: any) => { push(r.data.graphLive ? 'Scheduled in Teams/Outlook' : 'Scheduled — Teams link generated'); onDone() },
+    onSuccess: (r: any) => { push(r.data.graphLive ? 'Calendar invite sent — Teams link is ready' : 'Review scheduled without calendar integration'); onDone() },
     onError: (e: any) => push(apiError(e), 'error'),
   })
   return (
@@ -151,7 +164,7 @@ function ScheduleModal({ req, onClose, onDone, push }: any) {
         <div className="sm:col-span-2"><Field label="Meeting title" required><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field></div>
         <Field label="Date & time" required><Input type="datetime-local" value={form.scheduledAt} onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })} /></Field>
         <Field label="Duration (min)"><Input type="number" value={form.durationMinutes} onChange={(e) => setForm({ ...form, durationMinutes: Number(e.target.value) })} /></Field>
-        <div className="sm:col-span-2"><Field label="Attendees" hint="Comma-separated emails"><Input value={form.attendees} onChange={(e) => setForm({ ...form, attendees: e.target.value })} /></Field></div>
+        <div className="sm:col-span-2"><Field label="Extra attendees (optional)" hint="The review subject, assigned reviewer, and scheduling PM/PC are included automatically. Add any other emails separated by commas."><Input value={form.attendees} onChange={(e) => setForm({ ...form, attendees: e.target.value })} placeholder="additional.person@company.com" /></Field></div>
       </div>
     </Modal>
   )
@@ -169,7 +182,7 @@ function GroupScheduleModal({ open, onClose, projects, employees, reviewTypes, o
       subjectUserIds: selected, title: form.title, scheduledAt: form.scheduledAt,
       durationMinutes: form.durationMinutes, notes: form.notes,
     }),
-    onSuccess: (r: any) => { push(`Scheduled for ${r.data.count} employee(s)${r.data.graphLive ? ' — Teams/Outlook invites sent' : ' — Teams link generated'}`); setSelected([]); onDone() },
+    onSuccess: (r: any) => { push(`Scheduled for ${r.data.count} employee(s)${r.data.graphLive ? ' — Teams/Outlook calendar invites sent' : ' — without calendar integration'}`); setSelected([]); onDone() },
     onError: (e: any) => push(apiError(e), 'error'),
   })
 

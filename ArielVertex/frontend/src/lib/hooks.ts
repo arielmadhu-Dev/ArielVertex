@@ -3,7 +3,7 @@ import { api } from './api'
 import type { EnumOption, UserListItem, Paged } from './types'
 
 interface Enums {
-  roles: EnumOption[]; projectRoles: EnumOption[]; projectStatus: EnumOption[]; projectHealth: EnumOption[]
+  roles: EnumOption[]; employeeStatuses: EnumOption[]; projectRoles: EnumOption[]; projectStatus: EnumOption[]; projectHealth: EnumOption[]
   priorities: EnumOption[]; reviewTypes: EnumOption[]; resourceStatuses: EnumOption[]
   documentCategories: EnumOption[]; visibilities: EnumOption[]; updateStatuses: EnumOption[]; callTypes: EnumOption[]
   expenseCategories: EnumOption[]; expenseStatuses: EnumOption[]

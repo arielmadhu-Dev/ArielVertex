@@ -69,15 +69,20 @@ public interface IProjectAccessService
 }
 
 /// <summary>
-/// Microsoft Graph meeting boundary (spec 6.5/6.7). The stub returns deterministic
-/// placeholder ids/urls so the flow is testable now; the real impl calls Graph later.
+/// Microsoft Graph meeting boundary (spec 6.5/6.7). Live implementations create or update
+/// Outlook calendar events and return the generated Teams join URL.
 /// </summary>
 public interface IGraphMeetingService
 {
     bool IsLive { get; }
     Task<(string outlookEventId, string teamsJoinUrl)> CreateMeetingAsync(
         string title, string description, DateTime scheduledAt, int durationMinutes,
-        IEnumerable<string> attendeeEmails, CancellationToken ct = default);
+        IEnumerable<string> attendeeEmails, string? existingEventId = null, CancellationToken ct = default);
+}
+
+public sealed class MeetingIntegrationException : Exception
+{
+    public MeetingIntegrationException(string message, Exception? inner = null) : base(message, inner) { }
 }
 
 public record DirectorySyncResult(int Created, int Updated, int Deactivated, int Failed, SyncStatus Status, string Message);

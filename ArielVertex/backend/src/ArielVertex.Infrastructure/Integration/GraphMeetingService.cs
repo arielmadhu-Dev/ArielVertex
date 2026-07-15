@@ -6,9 +6,9 @@ using Microsoft.Extensions.Options;
 namespace ArielVertex.Infrastructure.Integration;
 
 /// <summary>
-/// Microsoft Graph meeting boundary (spec 6.5/6.7). Off by default -> deterministic placeholder
-/// ids/urls so the full schedule flow is exercisable locally. Set Integration:GraphMeetingsLive
-/// (with AzureAd configured) to create real Outlook events with Teams links.
+/// Microsoft Graph meeting boundary (spec 6.5/6.7). When enabled, creates or updates a real
+/// Outlook calendar event and returns its Teams join URL. When disabled, returns empty identifiers
+/// so callers never expose a fake or unusable meeting link.
 /// </summary>
 public class GraphMeetingService : IGraphMeetingService
 {
@@ -25,26 +25,21 @@ public class GraphMeetingService : IGraphMeetingService
 
     public async Task<(string outlookEventId, string teamsJoinUrl)> CreateMeetingAsync(
         string title, string description, DateTime scheduledAt, int durationMinutes,
-        IEnumerable<string> attendeeEmails, CancellationToken ct = default)
+        IEnumerable<string> attendeeEmails, string? existingEventId = null, CancellationToken ct = default)
     {
-        if (IsLive)
-        {
-            try
-            {
-                return await _graph.CreateEventAsync(title, description, scheduledAt.ToUniversalTime(), durationMinutes, attendeeEmails, ct);
-            }
-            catch (Exception ex)
-            {
-                // Calendar creation is best-effort: a Graph outage or missing consent (e.g. 403) must
-                // not fail the review workflow. Fall through to a placeholder link so the review record
-                // and portal notifications are still created; the invite can be re-sent once Graph is fixed.
-                _log.LogWarning(ex, "Graph meeting creation failed for '{Title}'; falling back to placeholder link.", title);
-            }
-        }
+        if (!IsLive) return ("", "");
 
-        // Deterministic placeholders, stable per title+time so re-runs don't churn.
-        var slug = new string(title.ToLowerInvariant().Where(char.IsLetterOrDigit).Take(16).ToArray());
-        var key = $"{slug}-{scheduledAt:yyyyMMddHHmm}";
-        return ($"AV-EVT-{key}", $"https://teams.microsoft.com/l/meetup-join/av-placeholder/{key}");
+        try
+        {
+            return string.IsNullOrWhiteSpace(existingEventId)
+                ? await _graph.CreateEventAsync(title, description, scheduledAt.ToUniversalTime(), durationMinutes, attendeeEmails, ct)
+                : await _graph.UpdateEventAsync(existingEventId, title, description, scheduledAt.ToUniversalTime(), durationMinutes, attendeeEmails, ct);
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Graph meeting creation/update failed for '{Title}'.", title);
+            throw new MeetingIntegrationException(
+                "The Teams calendar invite could not be created. Grant the Entra app the Calendars.ReadWrite application permission with admin consent, and verify the configured service user has an Exchange calendar.", ex);
+        }
     }
 }

@@ -34,9 +34,15 @@ public class DirectorySyncService : IDirectorySyncService
         int created = 0, updated = 0, deactivated = 0, failed = 0;
         try
         {
+            // Read Graph before starting the transaction. A failed manager lookup cannot leave
+            // partially-updated employee records behind.
             var graphUsers = await _graph.ListUsersAsync(ct);
-            var byEmail = await _db.Users.ToDictionaryAsync(u => u.Email, u => u, StringComparer.OrdinalIgnoreCase, ct);
+            await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+            var now = DateTime.UtcNow;
+            var users = await _db.Users.ToListAsync(ct);
+            var byEmail = users.ToDictionary(u => u.Email, u => u, StringComparer.OrdinalIgnoreCase);
 
+            // First pass: upsert every user so all manager targets have local database ids.
             foreach (var g in graphUsers)
             {
                 var email = g.Email.Trim().ToLowerInvariant();
@@ -44,35 +50,119 @@ public class DirectorySyncService : IDirectorySyncService
 
                 if (byEmail.TryGetValue(email, out var user))
                 {
-                    user.Name = g.DisplayName; user.Designation = g.JobTitle;
-                    user.MicrosoftUserId = g.Id; user.LastSyncedAt = DateTime.UtcNow; user.IsProvisionedFromEntra = true;
-                    if (!g.AccountEnabled && user.Status == EmployeeStatus.Active) { user.Status = EmployeeStatus.Inactive; deactivated++; }
+                    if (!user.ProfileManagedLocally)
+                    {
+                        if (!string.IsNullOrWhiteSpace(g.DisplayName)) user.Name = g.DisplayName.Trim();
+                        user.Designation = g.JobTitle.Trim();
+                    }
+                    user.MicrosoftUserId = g.Id;
+                    user.LastSyncedAt = now;
+                    user.IsProvisionedFromEntra = true;
+                    if (!g.AccountEnabled && user.Status == EmployeeStatus.Active)
+                    {
+                        user.Status = EmployeeStatus.Inactive;
+                        deactivated++;
+                    }
                     else updated++;
                 }
                 else
                 {
-                    _db.Users.Add(new User
+                    user = new User
                     {
-                        Name = g.DisplayName, Email = email, Designation = g.JobTitle, Role = PortalRole.Employee,
-                        MicrosoftUserId = g.Id, IsProvisionedFromEntra = true, LastSyncedAt = DateTime.UtcNow,
+                        Name = string.IsNullOrWhiteSpace(g.DisplayName) ? email : g.DisplayName.Trim(),
+                        Email = email,
+                        Designation = g.JobTitle.Trim(),
+                        Role = PortalRole.Employee,
+                        MicrosoftUserId = g.Id,
+                        IsProvisionedFromEntra = true,
+                        LastSyncedAt = now,
                         Status = g.AccountEnabled ? EmployeeStatus.Active : EmployeeStatus.Inactive,
-                        JoiningDate = DateTime.UtcNow, EmployeeCode = ""
-                    });
+                        JoiningDate = now,
+                        EmployeeCode = ""
+                    };
+                    _db.Users.Add(user);
+                    byEmail[email] = user;
                     created++;
                 }
             }
             await _db.SaveChangesAsync(ct);
-            // Assign codes to any freshly-created users that lack one.
-            foreach (var u in await _db.Users.Where(u => u.EmployeeCode == "").ToListAsync(ct)) u.EmployeeCode = $"AV{u.Id:D4}";
+
+            // Assign codes to freshly-created users after their database ids are available.
+            foreach (var user in byEmail.Values.Where(u => string.IsNullOrWhiteSpace(u.EmployeeCode)))
+                user.EmployeeCode = $"AV{user.Id:D4}";
+
+            // Create missing department master records and map Entra's department text.
+            var departments = await _db.Departments.ToListAsync(ct);
+            var byDepartment = departments.ToDictionary(d => d.Name, d => d, StringComparer.OrdinalIgnoreCase);
+            var usedCodes = departments.Select(d => d.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var departmentName in graphUsers.Select(g => g.Department.Trim())
+                         .Where(name => !string.IsNullOrWhiteSpace(name)).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (byDepartment.ContainsKey(departmentName)) continue;
+                var department = new Department { Name = departmentName, Code = NextDepartmentCode(departmentName, usedCodes) };
+                _db.Departments.Add(department);
+                byDepartment[departmentName] = department;
+            }
             await _db.SaveChangesAsync(ct);
+
+            var byMicrosoftId = byEmail.Values
+                .Where(u => !string.IsNullOrWhiteSpace(u.MicrosoftUserId))
+                .GroupBy(u => u.MicrosoftUserId!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            var managerAssignments = 0;
+            var departmentAssignments = 0;
+
+            // Second pass: resolve relationships after every user and department has an id.
+            foreach (var g in graphUsers)
+            {
+                var email = g.Email.Trim().ToLowerInvariant();
+                if (!byEmail.TryGetValue(email, out var user)) continue;
+
+                if (!user.ProfileManagedLocally)
+                {
+                    user.DepartmentId = !string.IsNullOrWhiteSpace(g.Department) &&
+                                        byDepartment.TryGetValue(g.Department.Trim(), out var department)
+                        ? department.Id
+                        : null;
+                    if (user.DepartmentId is not null) departmentAssignments++;
+                }
+
+                if (!user.ManagerManagedLocally)
+                {
+                    User? manager = null;
+                    if (!string.IsNullOrWhiteSpace(g.ManagerMicrosoftUserId))
+                    {
+                        if (!byMicrosoftId.TryGetValue(g.ManagerMicrosoftUserId, out manager))
+                            failed++;
+                        else if (manager.Id == user.Id)
+                            manager = null;
+                    }
+                    user.ManagerId = manager?.Id;
+                    if (user.ManagerId is not null) managerAssignments++;
+                }
+            }
+
+            await _db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             var status = failed == 0 ? SyncStatus.Success : SyncStatus.Partial;
             return new DirectorySyncResult(created, updated, deactivated, failed, status,
-                $"Synced {graphUsers.Count} directory users.");
+                $"Synced {graphUsers.Count} directory users; assigned {managerAssignments} managers and mapped {departmentAssignments} departments.");
         }
         catch (Exception ex)
         {
             return new DirectorySyncResult(created, updated, deactivated, failed + 1, SyncStatus.Failed, $"Sync failed: {ex.Message}");
         }
     }
+
+    private static string NextDepartmentCode(string name, ISet<string> usedCodes)
+    {
+        var root = new string(name.Where(char.IsLetterOrDigit).Take(8).ToArray()).ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(root)) root = "DEPT";
+        var candidate = root;
+        var suffix = 2;
+        while (!usedCodes.Add(candidate)) candidate = $"{root}{suffix++}";
+        return candidate;
+    }
+
 }
