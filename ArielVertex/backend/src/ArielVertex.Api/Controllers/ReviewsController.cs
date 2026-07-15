@@ -72,18 +72,48 @@ public class ReviewsController : ApiControllerBase
     [Capability(Permissions.ReviewsSchedule)]
     public async Task<IActionResult> Schedule(int id, [FromBody] ScheduleReviewRequest req)
     {
-        var r = await _db.ReviewRequests.Include(x => x.Meeting).FirstOrDefaultAsync(x => x.Id == id);
+        var r = await _db.ReviewRequests
+            .Include(x => x.Meeting).Include(x => x.SubjectUser).Include(x => x.AssignedTo)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (r is null) return Missing("Review request not found.");
         if (!await _access.CanManageAsync(r.ProjectId)) return Denied("Only the project's PM/PC can schedule this review.");
 
-        var attendees = (req.Attendees ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var (eventId, joinUrl) = await _graph.CreateMeetingAsync(req.Title, req.Description ?? "", req.ScheduledAt.ToUniversalTime(), req.DurationMinutes, attendees);
+        User? assignee = r.AssignedTo;
+        if (req.AssignedToId is int assigneeId)
+        {
+            assignee = await _db.Users.FindAsync(assigneeId);
+            if (assignee is null) return BadInput("Unknown reviewer.");
+        }
+
+        // Required calendar attendees are automatic: review subject, assigned reviewer and the
+        // PM/PC scheduling it. The form only supplies optional extra email addresses.
+        var attendees = Mappers.SplitAttendees(req.Attendees)
+            .Concat(new[] { r.SubjectUser?.Email, assignee?.Email, _me.Email })
+            .Where(email => !string.IsNullOrWhiteSpace(email))
+            .Select(email => email!.Trim().ToLowerInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        (string eventId, string joinUrl) calendar;
+        try
+        {
+            calendar = await _graph.CreateMeetingAsync(
+                req.Title, req.Description ?? "", req.ScheduledAt.ToUniversalTime(),
+                req.DurationMinutes, attendees, ExistingGraphEventId(r.Meeting));
+        }
+        catch (MeetingIntegrationException ex)
+        {
+            return Fail(StatusCodes.Status503ServiceUnavailable, "calendar_integration_unavailable", ex.Message);
+        }
+        var (eventId, joinUrl) = calendar;
 
         if (r.Meeting is null)
             r.Meeting = new ReviewMeeting { ReviewRequestId = r.Id };
         r.Meeting.Title = req.Title.Trim(); r.Meeting.Description = req.Description?.Trim() ?? "";
         r.Meeting.ScheduledAt = req.ScheduledAt.ToUniversalTime(); r.Meeting.DurationMinutes = req.DurationMinutes;
-        r.Meeting.Attendees = req.Attendees ?? ""; r.Meeting.OutlookEventId = eventId; r.Meeting.TeamsJoinUrl = joinUrl;
+        r.Meeting.Attendees = string.Join(", ", attendees);
+        r.Meeting.OutlookEventId = string.IsNullOrWhiteSpace(eventId) ? null : eventId;
+        r.Meeting.TeamsJoinUrl = string.IsNullOrWhiteSpace(joinUrl) ? null : joinUrl;
         r.Meeting.ScheduledById = _me.Id;
         if (req.AssignedToId is int a) r.AssignedToId = a;
         r.Status = ReviewRequestStatus.Scheduled;
@@ -120,11 +150,24 @@ public class ReviewsController : ApiControllerBase
         var scheduledAt = req.ScheduledAt.ToUniversalTime();
         var attendeeEmails = subjects.Select(s => s.Email)
             .Concat(assignee is null ? Array.Empty<string>() : new[] { assignee.Email })
-            .Where(e => !string.IsNullOrWhiteSpace(e)).Distinct().ToList();
+            .Append(_me.Email)
+            .Where(e => !string.IsNullOrWhiteSpace(e))
+            .Select(e => e.Trim().ToLowerInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
-        // One calendar event invites everyone (native Outlook accept/decline); each employee gets their own record.
-        var (eventId, joinUrl) = await _graph.CreateMeetingAsync(
-            req.Title, req.Description ?? "", scheduledAt, req.DurationMinutes, attendeeEmails);
+        // One calendar event invites everyone (native Outlook/Teams accept/decline); each employee
+        // gets an individual portal record for workflow tracking.
+        (string eventId, string joinUrl) calendar;
+        try
+        {
+            calendar = await _graph.CreateMeetingAsync(
+                req.Title, req.Description ?? "", scheduledAt, req.DurationMinutes, attendeeEmails);
+        }
+        catch (MeetingIntegrationException ex)
+        {
+            return Fail(StatusCodes.Status503ServiceUnavailable, "calendar_integration_unavailable", ex.Message);
+        }
+        var (eventId, joinUrl) = calendar;
         var attendeesCsv = string.Join(", ", attendeeEmails);
 
         foreach (var s in subjects)
@@ -155,6 +198,14 @@ public class ReviewsController : ApiControllerBase
             $"{req.ReviewType} scheduled for {subjects.Count} employee(s): {req.Title}.");
 
         return Ok(new { count = subjects.Count, teamsJoinUrl = joinUrl, graphLive = _graph.IsLive });
+    }
+
+    private static string? ExistingGraphEventId(ReviewMeeting? meeting)
+    {
+        if (string.IsNullOrWhiteSpace(meeting?.OutlookEventId)) return null;
+        if (meeting.OutlookEventId.StartsWith("AV-EVT-", StringComparison.OrdinalIgnoreCase)) return null;
+        if (meeting.TeamsJoinUrl?.Contains("av-placeholder", StringComparison.OrdinalIgnoreCase) == true) return null;
+        return meeting.OutlookEventId;
     }
 
     /// <summary>A review subject accepts/declines their scheduled review from inside the portal (#8).</summary>

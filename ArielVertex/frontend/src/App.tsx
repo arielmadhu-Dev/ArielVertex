@@ -55,7 +55,7 @@ export default function App() {
   const location = useLocation()
 
   return (
-    <ErrorBoundary resetKey={loc.pathname}>
+    <ErrorBoundary resetKey={`${location.pathname}${location.search}`}>
     <Routes>
         <Route path="/login" element={user && !loading ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/report/:id" element={<Protected><PerformanceReportPrint /></Protected>} />

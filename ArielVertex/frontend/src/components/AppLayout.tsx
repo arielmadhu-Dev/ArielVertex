@@ -29,20 +29,20 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   if (!user) return null
   return (
     <div className="flex h-full flex-col">
-      <div className="px-5 h-16 flex items-center border-b border-[var(--line)]">
-        <Logo />
+      <div className="px-5 h-16 flex items-center border-b border-white/10">
+        <Logo inverse />
       </div>
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+      <nav className="av-sidebar-scroll flex-1 overflow-y-auto px-3 py-4 space-y-6">
         {visibleGroups(user, features).map((g) => (
           <div key={g.title}>
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{g.title}</p>
+            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#66738e]">{g.title}</p>
             <div className="space-y-0.5">
               {g.items.map((item) => (
                 <NavLink key={item.to} to={item.to} end={item.to === '/'} onClick={onNavigate}
                   className={({ isActive }) => cx(
                     'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition',
-                    isActive ? 'text-brand-700 dark:text-white bg-brand-50 dark:bg-brand-900/40'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-600')}>
+                    isActive ? 'text-white bg-[#1b416f] shadow-sm shadow-black/10'
+                      : 'text-[#a4afc4] hover:text-white hover:bg-white/[0.06]')}>
                   {({ isActive }) => (
                     <>
                       {isActive && <motion.span layoutId="nav-active" className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-brand-500" />}
@@ -56,12 +56,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </div>
         ))}
       </nav>
-      <div className="p-3 border-t border-[var(--line)]">
-        <div className="flex items-center gap-3 rounded-xl px-2 py-2">
+      <div className="p-3 border-t border-white/10">
+        <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] ring-1 ring-white/[0.05] px-2 py-2">
           <Avatar name={user.name} color={user.avatarColor} size={38} />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold truncate">{user.name}</p>
-            <p className="text-xs text-slate-500 truncate">{user.roleLabel}</p>
+            <p className="text-sm font-bold text-white truncate">{user.name}</p>
+            <p className="text-xs text-[#8290aa] truncate">{user.roleLabel}</p>
           </div>
         </div>
       </div>
@@ -92,7 +92,7 @@ export function AppLayout() {
   return (
     <div className="min-h-screen av-mesh">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-[268px] flex-col border-r border-[var(--line)] bg-[var(--card)]/80 backdrop-blur z-30">
+      <aside className="av-sidebar hidden lg:flex fixed inset-y-0 left-0 w-[268px] flex-col border-r border-white/10 z-30">
         <SidebarContent />
       </aside>
 
@@ -101,7 +101,7 @@ export function AppLayout() {
         {mobileOpen && (
           <div className="lg:hidden fixed inset-0 z-50">
             <motion.div className="absolute inset-0 bg-navy-900/50 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
-            <motion.aside className="absolute inset-y-0 left-0 w-[280px] bg-[var(--card)] shadow-pop"
+            <motion.aside className="av-sidebar absolute inset-y-0 left-0 w-[280px] shadow-pop"
               initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} transition={{ type: 'spring', damping: 26, stiffness: 240 }}>
               <button onClick={() => setMobileOpen(false)} className="absolute right-3 top-4 text-slate-400"><X className="h-5 w-5" /></button>
               <SidebarContent onNavigate={() => setMobileOpen(false)} />
@@ -112,7 +112,7 @@ export function AppLayout() {
 
       <div className="lg:pl-[268px]">
         {/* Topbar */}
-        <header className="sticky top-0 z-20 h-16 flex items-center gap-3 px-4 sm:px-6 border-b border-[var(--line)] bg-[var(--surface)]/80 backdrop-blur">
+        <header className="av-topbar sticky top-0 z-20 h-16 flex items-center gap-3 px-4 sm:px-6 border-b border-[var(--line)] backdrop-blur">
           <button onClick={() => setMobileOpen(true)} className="lg:hidden text-slate-500 p-1"><Menu className="h-6 w-6" /></button>
 
           <button onClick={() => setCmdOpen(true)}

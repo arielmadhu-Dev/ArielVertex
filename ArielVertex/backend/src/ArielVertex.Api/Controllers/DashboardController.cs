@@ -136,6 +136,15 @@ public class DashboardController : ControllerBase
                 break;
         }
 
+        // A PIP is always visible to its subject through /pip/mine, regardless of role.
+        // Surface active plans on the dashboard so employees do not have to rely on a
+        // notification link or an HR-only navigation permission to find them.
+        var myActivePips = await _db.Pips.CountAsync(p => p.SubjectUserId == _me.Id &&
+            (p.Status == PipStatus.Open || p.Status == PipStatus.InProgress));
+        if (myActivePips > 0)
+            pending.Insert(0, new PendingDto("PIP", "Your improvement plan",
+                "Review your goals, support and progress", myActivePips, "/pip"));
+
         return Ok(new DashboardDto(audience, stats, health, occupancy, activity, upcoming, pending));
     }
 }

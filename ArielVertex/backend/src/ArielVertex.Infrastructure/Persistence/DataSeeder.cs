@@ -18,6 +18,7 @@ public static class DataSeeder
     public static async Task SeedAsync(AppDbContext db, AuthSettings auth)
     {
         await db.Database.EnsureCreatedAsync();
+        await DatabaseSchemaUpgrader.ApplyAsync(db);
         if (await db.Users.AnyAsync()) return;
 
         var hash = BCrypt.Net.BCrypt.HashPassword(auth.SeedPassword);

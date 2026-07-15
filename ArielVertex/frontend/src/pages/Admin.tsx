@@ -25,7 +25,11 @@ export default function Admin() {
 
   const runSync = useMutation({
     mutationFn: () => api.post('/admin/sync/run'),
-    onSuccess: (r: any) => { push(r.data.message || 'Sync run recorded'); qc.invalidateQueries({ queryKey: ['sync-logs'] }) },
+    onSuccess: (r: any) => {
+      push(r.data.message || 'Sync run recorded')
+      qc.invalidateQueries({ queryKey: ['sync-logs'] })
+      qc.invalidateQueries({ queryKey: ['employees'] })
+    },
     onError: (e) => push(apiError(e), 'error'),
   })
 
@@ -59,7 +63,7 @@ export default function Admin() {
 
         {has(P.SyncRun) && (
           <Card className="lg:col-span-2">
-            <CardHeader title="Employee Sync" subtitle="Run history with created / updated / failed counts" icon={<RefreshCw className="h-[18px] w-[18px]" />}
+            <CardHeader title="Employee Sync" subtitle="Users, departments, and manager relationships from Microsoft Entra" icon={<RefreshCw className="h-[18px] w-[18px]" />}
               action={<Button size="sm" loading={runSync.isPending} icon={<RefreshCw className="h-4 w-4" />} onClick={() => runSync.mutate()}>Run sync</Button>} />
             <div className="p-5 space-y-2">
               {syncLogs.data?.length ? syncLogs.data.map((s) => (

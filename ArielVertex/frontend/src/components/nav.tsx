@@ -47,7 +47,9 @@ export const navGroups: NavGroup[] = [
       { to: '/feedback', label: 'Feedback', icon: MessageSquareQuote, feature: 'feedback', show: (u) => any(u, P.FeedbackSubmit, P.FeedbackApprove) },
       { to: '/my-performance', label: 'My Performance', icon: LineChart, show: (u) => any(u, P.PerformanceViewOwn) },
       { to: '/performance-reports', label: 'Performance Reports', icon: Gauge, feature: 'performanceReports', show: (u) => any(u, P.PerformanceViewAll) },
-      { to: '/pip', label: 'Improvement Plans', icon: LifeBuoy, feature: 'pip', show: (u) => any(u, P.PipView) },
+      // Every authenticated user can open /pip. The page calls /pip/mine for employees
+      // and only uses the organization-wide endpoint for users with PipView.
+      { to: '/pip', label: 'Improvement Plans', icon: LifeBuoy, feature: 'pip', show: () => true },
     ],
   },
   {

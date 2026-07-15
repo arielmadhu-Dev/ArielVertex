@@ -15,3 +15,12 @@ dist/
 # Env / secrets
 .env.local
 *.user
+
+# Visual Studio
+**/.vs/
+*.user
+*.suo
+
+# .NET build output
+**/bin/
+**/obj/

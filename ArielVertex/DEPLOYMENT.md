@@ -54,8 +54,9 @@ The integration is fully coded and ships **off**. To go live:
 1. **Create the Entra app registration** (see `Microsoft_365_Graph_API_App_Registration_Setup_Guide`).
    - Single-tenant. Add a **SPA redirect URI** = your portal origin (e.g. `https://portal.arielsoftwares.in`).
    - Add a **client secret**.
-   - **API permissions** (application, admin-consented): `User.Read.All` (sync), `Calendars.ReadWrite` +
-     `OnlineMeetings.ReadWrite` (meetings), `Mail.Send` (Outlook delivery). Delegated `openid profile email User.Read` for login.
+   - **API permissions** (application, admin-consented): `User.Read.All` (sync), `Calendars.ReadWrite`
+     (Outlook calendar invites with Teams links), and `Mail.Send` (Outlook delivery). Delegated
+     `openid profile email User.Read` for login.
 2. **Backend `.env`:**
    ```
    AUTH_MODE=Entra
@@ -78,7 +79,7 @@ The integration is fully coded and ships **off**. To go live:
 What each flag does when live:
 - **Microsoft login** — SPA gets an Entra token (MSAL) → `POST /auth/microsoft` validates it against the
   tenant keys, enforces the allowed domain, provisions/maps the user, and issues the app JWT (RBAC unchanged).
-- **Directory sync** — pulls Entra users via Graph and upserts them (keyed on email); disabled users → Inactive.
+- **Directory sync** — pulls Entra users, departments, and manager relationships via Graph and upserts them (keyed on email); disabled users → Inactive. HR can keep selected profile or manager fields locally managed from the Employees page.
 - **Meetings** — reviews/calls create real Outlook events with Teams join links.
 - **Outlook delivery** — high-signal notifications are also emailed via Graph.
 

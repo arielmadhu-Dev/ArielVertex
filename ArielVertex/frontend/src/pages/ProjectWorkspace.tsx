@@ -27,7 +27,7 @@ export default function ProjectWorkspace() {
   if (isLoading) return <div className="space-y-4"><Skeleton className="h-24" /><Skeleton className="h-64" /></div>
   if (!p) return <EmptyState icon={<Info className="h-6 w-6" />} title="Project not found" />
 
-  const members = asArray(p.members)
+  const members = asArray(p.members).filter((member) => member.isActive)
   const tags = asArray(p.tags)
 
   const tabs = [
@@ -125,7 +125,7 @@ function Team({ p }: { p: ProjectDetail }) {
     onSuccess: () => { push('Member removed'); qc.invalidateQueries({ queryKey: ['project', p.id] }) },
     onError: (e) => push(apiError(e), 'error'),
   })
-  const members = asArray(p.members)
+  const members = asArray(p.members).filter((member) => member.isActive)
 
   return (
     <div>

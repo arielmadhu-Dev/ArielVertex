@@ -17,6 +17,7 @@ public class MetaController : ApiControllerBase
     public IActionResult Enums() => Ok(new
     {
         roles = Opts<PortalRole>(Labels.Role),
+        employeeStatuses = Opts<EmployeeStatus>(s => s.ToString()),
         projectRoles = Opts<ProjectRole>(r => System.Text.RegularExpressions.Regex.Replace(r.ToString(), "(?<=[a-z])(?=[A-Z])", " ")),
         projectStatus = Opts<ProjectStatus>(s => s.ToString()),
         projectHealth = Opts<ProjectHealth>(h => h.ToString()),

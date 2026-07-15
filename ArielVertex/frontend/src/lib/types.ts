@@ -91,8 +91,10 @@ export interface Dashboard {
 
 export interface UserListItem {
   id: number; name: string; email: string; employeeCode: string; role: string; roleLabel: string
-  designation: string; department?: string; avatarColor: string; status: string
-  managerName?: string; joiningDate: string
+  designation: string; departmentId?: number; department?: string; avatarColor: string; status: string
+  managerId?: number; managerName?: string; joiningDate: string; skills: string
+  isProvisionedFromEntra: boolean; profileManagedLocally: boolean; managerManagedLocally: boolean
+  lastSyncedAt?: string
 }
 
 export interface ResourceRequestItem {

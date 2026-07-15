@@ -55,7 +55,7 @@ public static class DependencyInjection
         services.Configure<Jobs.AutomationSettings>(config.GetSection("Automation"));
         services.AddHostedService<Jobs.AutomationBackgroundService>();
 
-        // Graph boundaries — placeholder locally, live via config-flip.
+        // Graph boundaries — disabled locally unless explicitly enabled and configured.
         services.AddSingleton<IGraphMeetingService, GraphMeetingService>();
         services.AddScoped<IDirectorySyncService, DirectorySyncService>(); // scoped: upserts via DbContext
 

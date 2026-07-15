@@ -4,14 +4,18 @@
 @tailwind utilities;
 
 :root {
-  --surface: #f6f8fc;
+  --surface: #eef3fa;
+  --topbar: rgba(248, 250, 253, .94);
   --card: #ffffff;
-  --line: #e7ecf5;
-  --ink: #17203E;
-  --muted: #64748b;
+  --line: #dce4f0;
+  --ink: #111b38;
+  --muted: #65748f;
+  --sidebar: #111c38;
+  --sidebar-deep: #0d172f;
 }
 .dark {
   --surface: #0c1228;
+  --topbar: rgba(12, 18, 40, .92);
   --card: #111935;
   --line: #232f52;
   --ink: #eef2fb;
@@ -32,6 +36,11 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,.55); background-clip: content-box; }
 
 @layer components {
+  .av-sidebar {
+    background: linear-gradient(180deg, var(--sidebar) 0%, var(--sidebar-deep) 100%);
+    color: white;
+  }
+  .av-topbar { background: var(--topbar); }
   .av-card {
     background: var(--card);
     border: 1px solid var(--line);
@@ -50,9 +59,8 @@ body {
 
 /* Reusable gradient used for hero/brand surfaces */
 .av-brand-gradient { background: linear-gradient(135deg, #17203E 0%, #1b2c57 45%, #1E7FD4 130%); }
-.av-mesh {
-  background:
-    radial-gradient(1200px 500px at 100% -10%, rgba(30,127,212,.18), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(30,127,212,.12), transparent 55%),
-    var(--surface);
-}
+.av-mesh { background: var(--surface); }
+
+.av-sidebar-scroll::-webkit-scrollbar { width: 8px; }
+.av-sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .2); }
+.av-sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, .34); }

@@ -28,6 +28,12 @@ public class User : BaseEntity
     public bool IsProvisionedFromEntra { get; set; }
     public DateTime? LastSyncedAt { get; set; }
 
+    /// <summary>When true, HR-entered name/designation/department values are not overwritten by directory sync.</summary>
+    public bool ProfileManagedLocally { get; set; }
+
+    /// <summary>When true, HR's manager assignment is retained instead of using the Entra manager relationship.</summary>
+    public bool ManagerManagedLocally { get; set; }
+
     public int? DepartmentId { get; set; }
     public Department? Department { get; set; }
 

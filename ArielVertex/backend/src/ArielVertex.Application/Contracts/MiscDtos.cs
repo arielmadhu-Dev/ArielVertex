@@ -6,10 +6,28 @@ namespace ArielVertex.Application.Contracts;
 // ---------- Users / directory ----------
 public record UserListItemDto(
     int Id, string Name, string Email, string EmployeeCode, PortalRole Role, string RoleLabel,
-    string Designation, string? Department, string AvatarColor, EmployeeStatus Status,
-    string? ManagerName, DateTime JoiningDate);
+    string Designation, int? DepartmentId, string? Department, string AvatarColor, EmployeeStatus Status,
+    int? ManagerId, string? ManagerName, DateTime JoiningDate, string Skills,
+    bool IsProvisionedFromEntra, bool ProfileManagedLocally, bool ManagerManagedLocally, DateTime? LastSyncedAt);
 
 public record UpdateUserRoleRequest([Required] PortalRole Role);
+
+public record UpdateEmployeeRequest(
+    [Required, MaxLength(120)] string Name,
+    [Required, MaxLength(20)] string EmployeeCode,
+    [Required, MaxLength(120)] string Designation,
+    [MaxLength(600)] string? Skills,
+    EmployeeStatus Status,
+    DateTime JoiningDate,
+    int? DepartmentId,
+    int? ManagerId,
+    bool ProfileManagedLocally,
+    bool ManagerManagedLocally);
+
+public record EmployeeEditOptionDto(int Id, string Name, string? Detail);
+public record EmployeeEditOptionsDto(
+    IReadOnlyList<EmployeeEditOptionDto> Departments,
+    IReadOnlyList<EmployeeEditOptionDto> Managers);
 
 // ---------- Performance ----------
 public record PerformanceCategoryDto(string Key, string Name, string Factors, decimal DefaultWeight, bool CanBeNa);

@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "ArielVertex.Application/1.0.0": {
+        "dependencies": {
+          "ArielVertex.Domain": "1.0.0"
+        },
+        "runtime": {
+          "ArielVertex.Application.dll": {}
+        }
+      },
+      "ArielVertex.Domain/1.0.0": {
+        "runtime": {
+          "ArielVertex.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ArielVertex.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ArielVertex.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

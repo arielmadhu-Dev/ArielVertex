@@ -110,8 +110,8 @@ public class ProjectsController : ApiControllerBase
     public async Task<IActionResult> Members(int id)
     {
         if (!await _access.CanViewAsync(id)) return Denied();
-        var members = await _db.ProjectMembers.Include(m => m.User).Where(m => m.ProjectId == id)
-            .AsNoTracking().ToListAsync();
+        var members = await _db.ProjectMembers.Include(m => m.User)
+            .Where(m => m.ProjectId == id && m.IsActive).AsNoTracking().ToListAsync();
         return Ok(members.Select(m => m.ToDto()).OrderBy(m => m.RoleOnProject));
     }
 
@@ -119,16 +119,22 @@ public class ProjectsController : ApiControllerBase
     public async Task<IActionResult> AddMember(int id, [FromBody] AddMemberRequest req)
     {
         if (!await _access.CanManageAsync(id)) return Denied("Only the PM/PC can manage the team.");
-        if (await _db.ProjectMembers.AnyAsync(m => m.ProjectId == id && m.UserId == req.UserId))
-            return Conflict409("That person is already on the project.");
         if (!await _db.Users.AnyAsync(u => u.Id == req.UserId)) return BadInput("Unknown employee.");
 
-        _db.ProjectMembers.Add(new ProjectMember
+        // Preserve membership history on removal, but reactivate that row when the employee is
+        // added again. The unique project/user index prevents creating a second membership row.
+        var member = await _db.ProjectMembers.FirstOrDefaultAsync(m => m.ProjectId == id && m.UserId == req.UserId);
+        if (member?.IsActive == true) return Conflict409("That person is already on the project.");
+        if (member is null)
         {
-            ProjectId = id, UserId = req.UserId, RoleOnProject = req.RoleOnProject,
-            AllocationPct = req.AllocationPct, StartDate = req.StartDate.ToUniversalTime(),
-            EndDate = req.EndDate?.ToUniversalTime(), IsActive = true
-        });
+            member = new ProjectMember { ProjectId = id, UserId = req.UserId };
+            _db.ProjectMembers.Add(member);
+        }
+        member.RoleOnProject = req.RoleOnProject;
+        member.AllocationPct = req.AllocationPct;
+        member.StartDate = req.StartDate.ToUniversalTime();
+        member.EndDate = req.EndDate?.ToUniversalTime();
+        member.IsActive = true;
         await _db.SaveChangesAsync();
         await _notify.NotifyAsync(req.UserId, NotificationType.General, "Added to a project",
             "You have been assigned to a project. Open the workspace to see details.", $"/projects/{id}");
@@ -277,8 +283,18 @@ public class ProjectsController : ApiControllerBase
     public async Task<IActionResult> ScheduleCall(int id, [FromBody] ScheduleCallRequest req)
     {
         if (!await _access.CanManageAsync(id)) return Denied("Only the PM/PC can schedule calls.");
-        var attendees = (req.Attendees ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var (eventId, joinUrl) = await _graph.CreateMeetingAsync(req.Title, req.Agenda ?? "", req.ScheduledAt.ToUniversalTime(), req.DurationMinutes, attendees);
+        var attendees = Mappers.SplitAttendees(req.Attendees);
+        (string eventId, string joinUrl) calendar;
+        try
+        {
+            calendar = await _graph.CreateMeetingAsync(
+                req.Title, req.Agenda ?? "", req.ScheduledAt.ToUniversalTime(), req.DurationMinutes, attendees);
+        }
+        catch (MeetingIntegrationException ex)
+        {
+            return Fail(StatusCodes.Status503ServiceUnavailable, "calendar_integration_unavailable", ex.Message);
+        }
+        var (eventId, joinUrl) = calendar;
 
         var call = new ProjectCall
         {
