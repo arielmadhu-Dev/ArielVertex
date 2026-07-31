@@ -19,6 +19,7 @@ public static class DataSeeder
     {
         await db.Database.EnsureCreatedAsync();
         await DatabaseSchemaUpgrader.ApplyAsync(db);
+        await EnsureNotificationTemplatesAsync(db);   // idempotent — runs for fresh AND existing databases
         if (await db.Users.AnyAsync()) return;
 
         var hash = BCrypt.Net.BCrypt.HashPassword(auth.SeedPassword);
@@ -380,6 +381,53 @@ public static class DataSeeder
 
         db.AuditLogs.Add(new AuditLog { ActorName = "system", Action = AuditAction.EmployeeSyncRun, EntityType = "Sync", Summary = "Initial seed dataset created." });
         db.MicrosoftSyncLogs.Add(new MicrosoftSyncLog { RunAt = now.AddDays(-1), Status = SyncStatus.Success, Created = 0, Updated = 0, WasManual = false, TriggeredBy = "system", Message = "Directory sync disabled (local mode)." });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Adds any notification templates that are missing, keyed by <see cref="NotificationTemplate.Key"/>.
+    /// Idempotent so new templates reach databases that were seeded before the template existed, without
+    /// overwriting wording an admin has since edited in the Configuration screen.
+    /// </summary>
+    private static async Task EnsureNotificationTemplatesAsync(AppDbContext db)
+    {
+        var defaults = new[]
+        {
+            new NotificationTemplate
+            {
+                Key = "appraisal.selfSubmitted",
+                Name = "Appraisal — self-assessment submitted (to manager)",
+                Subject = "Self-assessment ready to review — {employee}",
+                Body = "{employee} ({role}) has submitted their self-assessment for {cycle}.\n\n"
+                     + "Please complete your manager evaluation in the portal so the appraisal can move to HR for release.\n\n— Ariel Vertex",
+                Placeholders = "{employee}, {role}, {cycle}",
+            },
+            new NotificationTemplate
+            {
+                Key = "appraisal.managerCompleted",
+                Name = "Appraisal — manager evaluation completed (to employee)",
+                Subject = "Your {cycle} evaluation is complete",
+                Body = "Hi {employee},\n\n{manager} has completed your {cycle} performance evaluation. "
+                     + "Your appraisal is now with HR for final review and release.\n\n"
+                     + "You'll be notified as soon as your rating is released.\n\n— Ariel Vertex",
+                Placeholders = "{employee}, {manager}, {cycle}",
+            },
+            new NotificationTemplate
+            {
+                Key = "appraisal.released",
+                Name = "Appraisal — final rating released (to employee)",
+                Subject = "Your {cycle} rating is available",
+                Body = "Hi {employee},\n\nYour {cycle} has been finalised and released.\n\n"
+                     + "Final rating: {rating} / 5 — {band}\n\n"
+                     + "Open My Performance in the portal to see the full breakdown across your {role} evaluation areas.\n\n— Ariel Vertex",
+                Placeholders = "{employee}, {cycle}, {rating}, {band}, {role}",
+            },
+        };
+
+        var existing = await db.NotificationTemplates.Select(t => t.Key).ToListAsync();
+        var missing = defaults.Where(d => !existing.Contains(d.Key)).ToList();
+        if (missing.Count == 0) return;
+        db.NotificationTemplates.AddRange(missing);
         await db.SaveChangesAsync();
     }
 }

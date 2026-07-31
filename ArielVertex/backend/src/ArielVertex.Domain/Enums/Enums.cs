@@ -137,6 +137,12 @@ public enum PipOutcome { Pending = 0, Improved = 1, NotImproved = 2 }
 /// </summary>
 public enum MeetingMinuteStatus { Draft = 0, Preview = 1, Approved = 2, Sent = 3 }
 
+/// <summary>Which stage of the appraisal a configured form belongs to.</summary>
+public enum AppraisalFormVariant { Self = 0, Manager = 1 }
+
+/// <summary>A form row is either a 1-5 rated area or an open reflective question.</summary>
+public enum AppraisalAreaType { Rating = 0, Text = 1 }
+
 /// <summary>Audited sensitive actions (spec section 9 / 4).</summary>
 public enum AuditAction
 {

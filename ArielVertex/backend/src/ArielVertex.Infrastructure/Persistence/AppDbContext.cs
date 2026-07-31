@@ -37,6 +37,9 @@ public class AppDbContext : DbContext
     public DbSet<MeetingMinute> MeetingMinutes => Set<MeetingMinute>();
     public DbSet<AppraisalCycle> AppraisalCycles => Set<AppraisalCycle>();
     public DbSet<Appraisal> Appraisals => Set<Appraisal>();
+    public DbSet<AppraisalFormTemplate> AppraisalFormTemplates => Set<AppraisalFormTemplate>();
+    public DbSet<AppraisalFormArea> AppraisalFormAreas => Set<AppraisalFormArea>();
+    public DbSet<AppraisalAreaScore> AppraisalAreaScores => Set<AppraisalAreaScore>();
     public DbSet<Goal> Goals => Set<Goal>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
     public DbSet<TrainingRecommendation> TrainingRecommendations => Set<TrainingRecommendation>();
@@ -61,6 +64,24 @@ public class AppDbContext : DbContext
             e.HasOne(x => x.Cycle).WithMany(c => c.Appraisals).HasForeignKey(x => x.CycleId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Manager).WithMany().HasForeignKey(x => x.ManagerId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<AppraisalFormTemplate>(e =>
+        {
+            // One active form per role + stage.
+            e.HasIndex(x => new { x.Role, x.Variant }).IsUnique();
+            e.Property(x => x.Role).HasMaxLength(120);
+        });
+        b.Entity<AppraisalFormArea>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.HasOne(x => x.Template).WithMany(t => t.Areas).HasForeignKey(x => x.TemplateId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<AppraisalAreaScore>(e =>
+        {
+            e.HasIndex(x => new { x.AppraisalId, x.Stage, x.AreaName }).IsUnique();
+            e.Property(x => x.AreaName).HasMaxLength(200);
+            e.Property(x => x.Comment).HasMaxLength(4000);
+            e.HasOne(x => x.Appraisal).WithMany(a => a.AreaScores).HasForeignKey(x => x.AppraisalId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<Goal>(e =>
         {

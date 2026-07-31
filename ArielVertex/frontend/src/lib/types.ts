@@ -113,6 +113,8 @@ export interface Cycle {
 }
 export interface Appraisal {
   id: number; cycleId: number; cycleName: string; employeeId: number; employeeName: string; avatarColor: string
+  /** Designation — selects which role-based appraisal form applies. */
+  employeeRole: string
   managerId?: number; managerName?: string
   stage: 'SelfPending' | 'SelfSubmitted' | 'ManagerCompleted' | 'Released'
   selfRating?: number; selfComments?: string; selfSubmittedAt?: string

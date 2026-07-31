@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { UsersRound, Search, Shield, Pencil, Cloud, HardDrive } from 'lucide-react'
 import { api, apiError } from '../lib/api'
 import { useAuth } from '../lib/auth'
@@ -7,9 +7,11 @@ import { useEnums } from '../lib/hooks'
 import type { Paged, UserListItem } from '../lib/types'
 import { PageHeader } from '../components/PageHeader'
 import { Card, Badge, Avatar, StatusPill, EmptyState, Skeleton, Button } from '../ui/primitives'
+import { Pagination } from '../ui/Pagination'
 import { Field, Input, Select, Textarea } from '../ui/form'
 import { Modal } from '../ui/Modal'
 import { useToast } from '../ui/Toast'
+import { cx } from '../ui/util'
 import { P } from '../components/nav'
 
 interface EditOption { id: number; name: string; detail?: string }
@@ -39,16 +41,24 @@ export default function Employees() {
   const qc = useQueryClient()
   const enums = useEnums()
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(15)
   const [editing, setEditing] = useState<UserListItem | null>(null)
   const [form, setForm] = useState<EmployeeForm>(emptyForm)
   const canEdit = has(P.EmployeesManage)
   const canChangeRole = has(P.RolesManage)
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['employees', search],
-    queryFn: async () => (await api.get<Paged<UserListItem>>('/employees', { params: { search, pageSize: 100 } })).data,
+  // Server-side pagination: the API pages/filters; we only navigate. keepPreviousData
+  // holds the current rows visible while the next page loads (no flash to skeletons).
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['employees', search, page, pageSize],
+    queryFn: async () => (await api.get<Paged<UserListItem>>('/employees', { params: { search, page, pageSize } })).data,
+    placeholderData: keepPreviousData,
   })
   const employees = Array.isArray(data?.items) ? data.items : []
+
+  // Search changes the result set — always jump back to the first page.
+  const onSearch = (value: string) => { setSearch(value); setPage(1) }
 
   const editOptions = useQuery({
     queryKey: ['employee-edit-options'],
@@ -126,11 +136,11 @@ export default function Employees() {
 
       <div className="relative mb-4 max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people…" className="pl-9" />
+        <Input value={search} onChange={(e) => onSearch(e.target.value)} placeholder="Search people…" className="pl-9" />
       </div>
 
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto av-scroll-x">
+        <div className={cx('overflow-x-auto av-scroll-x transition-opacity', isFetching && !isLoading && 'opacity-60')}>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-[var(--line)]">
@@ -181,8 +191,20 @@ export default function Employees() {
             </tbody>
           </table>
         </div>
-        {!isLoading && !employees.length && <EmptyState icon={<UsersRound className="h-6 w-6" />} title="No employees found" />}
+        {!isLoading && !employees.length && <EmptyState icon={<UsersRound className="h-6 w-6" />} title="No employees found" hint={search ? 'Try a different search.' : undefined} />}
       </Card>
+
+      {data && data.total > 0 && (
+        <Pagination
+          page={data.page}
+          pageSize={data.pageSize}
+          total={data.total}
+          totalPages={data.totalPages}
+          busy={isFetching}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+        />
+      )}
 
       {canChangeRole && (
         <p className="mt-3 text-xs text-slate-400 inline-flex items-center gap-1.5">

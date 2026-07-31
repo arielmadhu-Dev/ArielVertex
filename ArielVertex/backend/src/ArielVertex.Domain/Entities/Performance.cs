@@ -46,6 +46,9 @@ public class Appraisal : BaseEntity
 
     public int? ManagerId { get; set; }
     public User? Manager { get; set; }
+
+    /// <summary>Per-area ratings captured from the role's configured Self and Manager forms.</summary>
+    public ICollection<AppraisalAreaScore> AreaScores { get; set; } = new List<AppraisalAreaScore>();
 }
 
 /// <summary>Goal / KRA owned by an employee, carrying a category, weightage and progress.</summary>

@@ -1,7 +1,8 @@
 import {
   LayoutDashboard, FolderKanban, ClipboardCheck, MessageSquareQuote, LineChart,
   UsersRound, UserPlus, GaugeCircle, FileBarChart, ShieldCheck, CalendarClock, Gauge, Wallet,
-  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart, LucideIcon,
+  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart,
+  ClipboardList, LucideIcon,
 } from 'lucide-react'
 import type { CurrentUser } from '../lib/types'
 
@@ -77,6 +78,7 @@ export const navGroups: NavGroup[] = [
     title: 'Administration',
     items: [
       { to: '/admin', label: 'Admin & Audit', icon: ShieldCheck, show: (u) => any(u, P.AuditView, P.SyncRun, P.AdminSettings) },
+      { to: '/appraisal-forms', label: 'Appraisal Forms', icon: ClipboardList, show: (u) => any(u, P.ConfigManage) },
       { to: '/configuration', label: 'Configuration', icon: SlidersHorizontal, show: (u) => any(u, P.ConfigManage) },
     ],
   },

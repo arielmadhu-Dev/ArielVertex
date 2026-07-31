@@ -129,6 +129,7 @@ public static class Mappers
 
     public static AppraisalDto ToDto(this Appraisal a) =>
         new(a.Id, a.CycleId, a.Cycle?.Name ?? "", a.EmployeeId, a.Employee?.Name ?? "", a.Employee?.AvatarColor ?? "#1E7FD4",
+            a.Employee?.Designation ?? "",
             a.ManagerId, a.Manager?.Name, a.Stage, a.SelfRating, a.SelfComments, a.SelfSubmittedAt,
             a.ManagerRating, a.ManagerComments, a.ManagerReviewedAt, a.FinalRating, a.ReleasedAt, a.CreatedAt);
 

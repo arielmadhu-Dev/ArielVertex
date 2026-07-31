@@ -26,6 +26,7 @@ import Admin from './pages/Admin'
 import Reports from './pages/Reports'
 import Cycles from './pages/Cycles'
 import Appraisals from './pages/Appraisals'
+import AppraisalForms from './pages/AppraisalForms'
 import Goals from './pages/Goals'
 import Promotions from './pages/Promotions'
 import Learning from './pages/Learning'
@@ -79,6 +80,7 @@ export default function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/appraisals" element={<Appraisals />} />
+          <Route path="/appraisal-forms" element={<AppraisalForms />} />
           <Route path="/goals" element={<Goals />} />
           <Route path="/cycles" element={<Cycles />} />
           <Route path="/promotions" element={<Promotions />} />
