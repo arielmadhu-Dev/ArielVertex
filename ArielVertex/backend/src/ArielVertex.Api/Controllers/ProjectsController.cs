@@ -316,7 +316,7 @@ public class ProjectsController : ApiControllerBase
             .AsNoTracking().OrderBy(c => c.CreatedAt).ToListAsync();
         return Ok(comments.Select(c => new
         {
-            c.Id, c.Message, AuthorId = c.AuthorId, AuthorName = c.Author?.Name,
+            c.Id, c.Message, c.Hours, AuthorId = c.AuthorId, AuthorName = c.Author?.Name,
             AvatarColor = c.Author?.AvatarColor ?? "#1E7FD4", Role = c.Author?.Role.ToString(), c.CreatedAt
         }));
     }
@@ -326,7 +326,7 @@ public class ProjectsController : ApiControllerBase
     {
         if (!await _access.CanViewAsync(id)) return Denied();
         if (string.IsNullOrWhiteSpace(req.Message)) return BadInput("Comment cannot be empty.");
-        var c = new ProjectComment { ProjectId = id, AuthorId = _me.Id, Message = req.Message.Trim() };
+        var c = new ProjectComment { ProjectId = id, AuthorId = _me.Id, Message = req.Message.Trim(), Hours = req.Hours };
         _db.ProjectComments.Add(c);
         await _db.SaveChangesAsync();
         return Ok(new { c.Id });

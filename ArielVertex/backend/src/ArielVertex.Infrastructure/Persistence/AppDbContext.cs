@@ -153,6 +153,7 @@ public class AppDbContext : DbContext
         b.Entity<ProjectComment>(e =>
         {
             e.HasIndex(c => c.ProjectId);
+            e.Property(c => c.Hours).HasPrecision(5, 2);
             e.HasOne(c => c.Project).WithMany().HasForeignKey(c => c.ProjectId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(c => c.Author).WithMany().HasForeignKey(c => c.AuthorId).OnDelete(DeleteBehavior.Restrict);
         });

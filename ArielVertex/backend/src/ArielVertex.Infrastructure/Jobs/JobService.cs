@@ -181,4 +181,38 @@ public class JobService : IJobService
         return new JobResult($"{label.ToLower()}-expense-summary", emails.Count,
             $"{label} summary sent to {emails.Count} recipient(s): {expenses.Count} expenses, ₹{total.ToString("N0", CultureInfo.InvariantCulture)}.");
     }
+
+    // ---- Daily business comment / hours summary (spec 6.3) ----
+    public async Task<JobResult> RunDailyCommentSummaryAsync(CancellationToken ct = default)
+    {
+        var from = DateTime.UtcNow.Date.AddDays(-1);
+        var comments = await _db.ProjectComments.Include(c => c.Author)
+            .Where(c => c.CreatedAt >= from && c.Project!.Status == ProjectStatus.Active)
+            .AsNoTracking().ToListAsync(ct);
+
+        var byProject = comments.GroupBy(c => c.ProjectId).ToList();
+        var notifiedProjects = 0;
+        foreach (var group in byProject)
+        {
+            var projectId = group.Key;
+            var recipients = await _db.ProjectMembers.Where(m => m.ProjectId == projectId && m.IsActive &&
+                    (m.RoleOnProject == ProjectRole.ProjectManager || m.RoleOnProject == ProjectRole.ProjectCoordinator ||
+                     m.RoleOnProject == ProjectRole.BusinessPerson))
+                .Select(m => m.UserId).Distinct().ToListAsync(ct);
+            if (recipients.Count == 0) continue;
+
+            var totalHours = group.Sum(c => c.Hours);
+            var projectName = group.First().Project?.Name ?? "";
+            var title = $"Daily business comment summary — {projectName}";
+            var message = $"{group.Count()} comment(s) in the last 24h" +
+                          (totalHours > 0 ? $", {totalHours}h logged." : ".");
+
+            await _notify.NotifyManyAsync(recipients, NotificationType.CommentSummary, title, message,
+                $"/projects/{projectId}?tab=comments", ct);
+            notifiedProjects++;
+        }
+
+        return new JobResult("comment-summary", notifiedProjects,
+            $"Sent daily comment summaries for {notifiedProjects} project(s).");
+    }
 }

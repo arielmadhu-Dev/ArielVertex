@@ -175,6 +175,9 @@ internal static class DatabaseSchemaUpgrader
                 ALTER TABLE "StatusUpdates"
                     ADD COLUMN IF NOT EXISTS "NonBillableHours" numeric(5,2) NOT NULL DEFAULT 0;
 
+                ALTER TABLE "ProjectComments"
+                    ADD COLUMN IF NOT EXISTS "Hours" numeric(5,2) NOT NULL DEFAULT 0;
+
                 DO $do$
                 BEGIN
                     IF EXISTS (SELECT 1 FROM information_schema.columns
@@ -405,6 +408,20 @@ internal static class DatabaseSchemaUpgrader
                     """ALTER TABLE "StatusUpdates" DROP COLUMN "HoursSpent";""",
                     cancellationToken);
             }
+
+            var commentColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = """PRAGMA table_info("ProjectComments");""";
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                    commentColumns.Add(reader.GetString(1));
+            }
+
+            if (!commentColumns.Contains("Hours"))
+                await db.Database.ExecuteSqlRawAsync(
+                    """ALTER TABLE "ProjectComments" ADD COLUMN "Hours" TEXT NOT NULL DEFAULT 0;""",
+                    cancellationToken);
         }
         finally
         {

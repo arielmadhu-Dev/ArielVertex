@@ -87,9 +87,10 @@ public class AdminController : ApiControllerBase
             "monthly-reports" => await jobs.RunMonthlyReportGenerationAsync(),
             "expense-daily" => await jobs.RunDailyExpenseSummaryAsync(),
             "expense-weekly" => await jobs.RunWeeklyExpenseSummaryAsync(),
+            "comment-summary" => await jobs.RunDailyCommentSummaryAsync(),
             _ => null
         };
-        if (result is null) return BadInput("Unknown job. Use status-reminders, quarterly-feedback, monthly-reports, expense-daily, or expense-weekly.");
+        if (result is null) return BadInput("Unknown job. Use status-reminders, quarterly-feedback, monthly-reports, expense-daily, expense-weekly, or comment-summary.");
         await _audit.WriteAsync(AuditAction.EmployeeSyncRun, "Job", null, $"Job '{result.Job}' run manually: {result.Message}");
         return Ok(result);
     }

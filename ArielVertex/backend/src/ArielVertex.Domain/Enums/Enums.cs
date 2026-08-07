@@ -107,7 +107,7 @@ public enum NotificationType
     ReviewRequested = 0, ReviewScheduled = 1, FeedbackDue = 2, FeedbackSubmitted = 3,
     FeedbackPublished = 4, DocumentUploaded = 5, StatusMissed = 6,
     ResourceRequestCreated = 7, ResourceRequestUpdated = 8, ReportGenerated = 9,
-    CallScheduled = 10, General = 11
+    CallScheduled = 10, General = 11, CommentSummary = 12
 }
 
 public enum NotificationChannel { Portal = 0, Teams = 1, Outlook = 2 }

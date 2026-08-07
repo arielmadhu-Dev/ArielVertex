@@ -349,11 +349,12 @@ function Comments({ pid }: { pid: number }) {
   const { push } = useToast()
   const { user } = useAuth()
   const [text, setText] = useState('')
+  const [hours, setHours] = useState(0)
   const { data } = useQuery({ queryKey: ['comments', pid], queryFn: async () => (await api.get<any[]>(`/projects/${pid}/comments`)).data })
 
   const post = useMutation({
-    mutationFn: () => api.post(`/projects/${pid}/comments`, { message: text }),
-    onSuccess: () => { setText(''); qc.invalidateQueries({ queryKey: ['comments', pid] }) },
+    mutationFn: () => api.post(`/projects/${pid}/comments`, { message: text, hours }),
+    onSuccess: () => { setText(''); setHours(0); qc.invalidateQueries({ queryKey: ['comments', pid] }) },
     onError: (e) => push(apiError(e), 'error'),
   })
 
@@ -372,7 +373,7 @@ function Comments({ pid }: { pid: number }) {
                   <span className={cx('text-[10px]', mine ? 'text-brand-100' : 'text-slate-400')}>{nice(c.role || '')}</span>
                 </div>
                 <p className="text-sm leading-relaxed">{c.message}</p>
-                <p className={cx('text-[10px] mt-1', mine ? 'text-brand-100' : 'text-slate-400')}>{fmtDateTime(c.createdAt)}</p>
+                <p className={cx('text-[10px] mt-1', mine ? 'text-brand-100' : 'text-slate-400')}>{fmtDateTime(c.createdAt)}{c.hours > 0 ? ` · ${c.hours}h logged` : ''}</p>
               </div>
             </div>
           )
@@ -381,6 +382,8 @@ function Comments({ pid }: { pid: number }) {
       <div className="flex gap-2">
         <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && text.trim() && post.mutate()}
           placeholder="Write a comment…" className="av-input flex-1" />
+        <input type="number" min={0} max={24} value={hours} onChange={(e) => setHours(Number(e.target.value))}
+          title="Hours logged" className="av-input w-20" />
         <Button icon={<Building2 className="h-4 w-4" />} loading={post.isPending} disabled={!text.trim()} onClick={() => post.mutate()}>Post</Button>
       </div>
     </div>

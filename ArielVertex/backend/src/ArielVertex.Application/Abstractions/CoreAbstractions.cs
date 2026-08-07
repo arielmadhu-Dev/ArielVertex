@@ -130,6 +130,8 @@ public interface IJobService
     Task<JobResult> RunDailyExpenseSummaryAsync(CancellationToken ct = default);
     /// <summary>Weekly expense summary to the HR Director (+ any configured recipients).</summary>
     Task<JobResult> RunWeeklyExpenseSummaryAsync(CancellationToken ct = default);
+    /// <summary>Daily digest of business comments/hours per active project, sent to that project's PM/PC/Business members (spec 6.3).</summary>
+    Task<JobResult> RunDailyCommentSummaryAsync(CancellationToken ct = default);
 }
 
 /// <summary>Delivers a message to a Microsoft Teams channel via an Incoming Webhook (config-gated).</summary>

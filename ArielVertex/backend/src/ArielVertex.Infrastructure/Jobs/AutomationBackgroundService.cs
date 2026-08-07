@@ -42,7 +42,7 @@ public class AutomationBackgroundService : BackgroundService
         }
     }
 
-    private DateOnly _lastDaily, _lastWeekly;
+    private DateOnly _lastDaily, _lastWeekly, _lastCommentSummary;
 
     private async Task RunCycleAsync(CancellationToken ct)
     {
@@ -63,6 +63,8 @@ public class AutomationBackgroundService : BackgroundService
             if (now.Hour >= 18 && today != _lastDaily) { await jobs.RunDailyExpenseSummaryAsync(ct); _lastDaily = today; }
             // Weekly expense summary on Fridays (once).
             if (now.DayOfWeek == DayOfWeek.Friday && now.Hour >= 18 && today != _lastWeekly) { await jobs.RunWeeklyExpenseSummaryAsync(ct); _lastWeekly = today; }
+            // Daily business comment/hours summary (once per day, after 18:00 UTC).
+            if (now.Hour >= 18 && today != _lastCommentSummary) { await jobs.RunDailyCommentSummaryAsync(ct); _lastCommentSummary = today; }
 
             _log.LogInformation("Automation cycle complete. {Msg}", r1.Message);
         }
