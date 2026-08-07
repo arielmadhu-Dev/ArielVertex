@@ -1,9 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-
-  <ItemGroup>
-    <ProjectReference Include="..\ArielVertex.Infrastructure\ArielVertex.Infrastructure.csproj" />
-    <ProjectReference Include="..\ArielVertex.Application\ArielVertex.Application.csproj" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
@@ -15,18 +10,16 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ArielVertex.Application\ArielVertex.Application.csproj" />
+    <ProjectReference Include="..\ArielVertex.Domain\ArielVertex.Domain.csproj" />
+    <ProjectReference Include="..\ArielVertex.Infrastructure\ArielVertex.Infrastructure.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-
-  <!-- Local dev only: this workstation has a partial runtime (AspNetCore.App 8.0.11 but no
-       NETCore.App 8.0.11), so pin both shared frameworks to the installed 8.0.8. Release/Docker
-       builds use clean images and don't need this. -->
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <RuntimeFrameworkVersion>8.0.8</RuntimeFrameworkVersion>
-    <RollForward>Disable</RollForward>
   </PropertyGroup>
 
 </Project>
