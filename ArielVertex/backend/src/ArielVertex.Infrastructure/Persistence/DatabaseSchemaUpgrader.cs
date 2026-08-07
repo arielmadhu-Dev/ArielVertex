@@ -169,6 +169,21 @@ internal static class DatabaseSchemaUpgrader
                     CONSTRAINT "FK_AppraisalAreaScores_Appraisals_AppraisalId" FOREIGN KEY ("AppraisalId") REFERENCES "Appraisals" ("Id") ON DELETE CASCADE
                 );
                 CREATE UNIQUE INDEX IF NOT EXISTS "IX_AppraisalAreaScores_AppraisalId_Stage_AreaName" ON "AppraisalAreaScores" ("AppraisalId", "Stage", "AreaName");
+
+                ALTER TABLE "StatusUpdates"
+                    ADD COLUMN IF NOT EXISTS "BillableHours" numeric(5,2) NOT NULL DEFAULT 0;
+                ALTER TABLE "StatusUpdates"
+                    ADD COLUMN IF NOT EXISTS "NonBillableHours" numeric(5,2) NOT NULL DEFAULT 0;
+
+                DO $do$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.columns
+                               WHERE table_name = 'StatusUpdates' AND column_name = 'HoursSpent') THEN
+                        UPDATE "StatusUpdates" SET "BillableHours" = "HoursSpent" WHERE "BillableHours" = 0;
+                        ALTER TABLE "StatusUpdates" DROP COLUMN "HoursSpent";
+                    END IF;
+                END
+                $do$;
                 """,
                 cancellationToken);
         }
@@ -361,6 +376,35 @@ internal static class DatabaseSchemaUpgrader
                 CREATE UNIQUE INDEX IF NOT EXISTS "IX_AppraisalAreaScores_AppraisalId_Stage_AreaName" ON "AppraisalAreaScores" ("AppraisalId", "Stage", "AreaName");
                 """,
                 cancellationToken);
+
+            var statusUpdateColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = """PRAGMA table_info("StatusUpdates");""";
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                    statusUpdateColumns.Add(reader.GetString(1));
+            }
+
+            if (!statusUpdateColumns.Contains("BillableHours"))
+                await db.Database.ExecuteSqlRawAsync(
+                    """ALTER TABLE "StatusUpdates" ADD COLUMN "BillableHours" TEXT NOT NULL DEFAULT 0;""",
+                    cancellationToken);
+
+            if (!statusUpdateColumns.Contains("NonBillableHours"))
+                await db.Database.ExecuteSqlRawAsync(
+                    """ALTER TABLE "StatusUpdates" ADD COLUMN "NonBillableHours" TEXT NOT NULL DEFAULT 0;""",
+                    cancellationToken);
+
+            if (statusUpdateColumns.Contains("HoursSpent"))
+            {
+                await db.Database.ExecuteSqlRawAsync(
+                    """UPDATE "StatusUpdates" SET "BillableHours" = "HoursSpent" WHERE "BillableHours" = 0;""",
+                    cancellationToken);
+                await db.Database.ExecuteSqlRawAsync(
+                    """ALTER TABLE "StatusUpdates" DROP COLUMN "HoursSpent";""",
+                    cancellationToken);
+            }
         }
         finally
         {

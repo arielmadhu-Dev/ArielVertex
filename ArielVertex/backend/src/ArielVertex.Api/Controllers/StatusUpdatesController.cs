@@ -46,12 +46,16 @@ public class StatusUpdatesController : ApiControllerBase
             .AnyAsync(m => m.ProjectId == req.ProjectId && m.UserId == _me.Id && m.IsActive);
         if (!assigned) return Denied("You can only submit updates for projects assigned to you.");
 
+        if (req.BillableHours + req.NonBillableHours > 24)
+            return Denied("Total hours (billable + non-billable) cannot exceed 24.");
+
         var s = new StatusUpdate
         {
             ProjectId = req.ProjectId, UserId = _me.Id, UpdateDate = req.UpdateDate == default ? DateTime.UtcNow.Date : req.UpdateDate.ToUniversalTime().Date,
             WorkCompleted = req.WorkCompleted.Trim(), NextPlannedWork = req.NextPlannedWork?.Trim() ?? "",
             Blockers = req.Blockers?.Trim() ?? "", Dependencies = req.Dependencies?.Trim() ?? "",
-            HoursSpent = req.HoursSpent, Status = req.Status, InternalNote = req.InternalNote?.Trim() ?? "",
+            BillableHours = req.BillableHours, NonBillableHours = req.NonBillableHours,
+            Status = req.Status, InternalNote = req.InternalNote?.Trim() ?? "",
             ClientShareableSummary = req.ClientShareableSummary?.Trim() ?? ""
         };
         _db.StatusUpdates.Add(s);

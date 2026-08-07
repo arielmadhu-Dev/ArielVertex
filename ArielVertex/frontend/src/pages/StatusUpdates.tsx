@@ -24,7 +24,7 @@ export default function StatusUpdates() {
   const { data } = useQuery({ queryKey: ['status-mine'], queryFn: async () => (await api.get<MineResp>('/status-updates/mine')).data })
   const assignableProjects = asArray(data?.assignableProjects)
   const updates = asArray(data?.updates)
-  const [form, setForm] = useState({ projectId: 0, updateDate: new Date().toISOString().slice(0, 10), workCompleted: '', nextPlannedWork: '', blockers: '', hoursSpent: 8, status: 'OnTrack', clientShareableSummary: '', internalNote: '' })
+  const [form, setForm] = useState({ projectId: 0, updateDate: new Date().toISOString().slice(0, 10), workCompleted: '', nextPlannedWork: '', blockers: '', billableHours: 8, nonBillableHours: 0, status: 'OnTrack', clientShareableSummary: '', internalNote: '' })
 
   const submit = useMutation({
     mutationFn: () => api.post('/status-updates', form),
@@ -48,9 +48,10 @@ export default function StatusUpdates() {
                   {assignableProjects.map((p) => <option key={p.projectId} value={p.projectId}>{p.name}</option>)}
                 </Select>
               </Field>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <Field label="Date"><Input type="date" value={form.updateDate} onChange={(e) => setForm({ ...form, updateDate: e.target.value })} /></Field>
-                <Field label="Hours"><Input type="number" min={0} max={24} value={form.hoursSpent} onChange={(e) => setForm({ ...form, hoursSpent: Number(e.target.value) })} /></Field>
+                <Field label="Billable hrs"><Input type="number" min={0} max={24} value={form.billableHours} onChange={(e) => setForm({ ...form, billableHours: Number(e.target.value) })} /></Field>
+                <Field label="Non-billable hrs"><Input type="number" min={0} max={24} value={form.nonBillableHours} onChange={(e) => setForm({ ...form, nonBillableHours: Number(e.target.value) })} /></Field>
               </div>
               <Field label="Status"><Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{enums.data?.updateStatuses.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select></Field>
               <Field label="Work completed" required><Textarea value={form.workCompleted} onChange={(e) => setForm({ ...form, workCompleted: e.target.value })} placeholder="What did you finish today?" /></Field>
@@ -69,7 +70,7 @@ export default function StatusUpdates() {
               <div key={s.id} className="rounded-xl border border-[var(--line)] p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Badge t="brand">{s.projectName}</Badge>
-                  <span className="text-xs text-slate-400">{fmtDate(s.updateDate)} · {s.hoursSpent}h</span>
+                  <span className="text-xs text-slate-400">{fmtDate(s.updateDate)} · {s.hoursSpent}h ({s.billableHours}b / {s.nonBillableHours}nb)</span>
                   <div className="ml-auto"><StatusPill value={s.status} /></div>
                 </div>
                 <p className="text-sm">{s.workCompleted}</p>

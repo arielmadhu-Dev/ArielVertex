@@ -160,7 +160,9 @@ public class AppDbContext : DbContext
         b.Entity<StatusUpdate>(e =>
         {
             e.HasIndex(s => new { s.ProjectId, s.UserId, s.UpdateDate });
-            e.Property(s => s.HoursSpent).HasPrecision(5, 2);
+            e.Property(s => s.BillableHours).HasPrecision(5, 2);
+            e.Property(s => s.NonBillableHours).HasPrecision(5, 2);
+            e.Ignore(s => s.HoursSpent);
             e.HasOne(s => s.Project).WithMany(p => p.StatusUpdates)
                 .HasForeignKey(s => s.ProjectId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(s => s.User).WithMany()

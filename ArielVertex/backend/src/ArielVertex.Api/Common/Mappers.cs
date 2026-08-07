@@ -42,7 +42,8 @@ public static class Mappers
     // ---- Status updates ----
     public static StatusUpdateDto ToDto(this StatusUpdate s, bool includeInternal) =>
         new(s.Id, s.ProjectId, s.Project?.Name ?? "", s.UserId, s.User?.Name ?? "", s.User?.AvatarColor ?? "#1E7FD4",
-            s.UpdateDate, s.WorkCompleted, s.NextPlannedWork, s.Blockers, s.Dependencies, s.HoursSpent, s.Status,
+            s.UpdateDate, s.WorkCompleted, s.NextPlannedWork, s.Blockers, s.Dependencies,
+            s.BillableHours, s.NonBillableHours, s.HoursSpent, s.Status,
             includeInternal ? s.InternalNote : null, s.ClientShareableSummary, s.CreatedAt);
 
     public static StatusUpdateBusinessDto ToBusinessDto(this StatusUpdate s) =>

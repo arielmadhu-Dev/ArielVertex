@@ -327,7 +327,7 @@ function StatusTab({ pid }: { pid: number }) {
         <div key={s.id} className="rounded-xl border border-[var(--line)] p-4">
           <div className="flex items-center gap-3 mb-2">
             <Avatar name={s.userName} color={s.avatarColor} size={34} />
-            <div className="flex-1"><p className="font-semibold text-sm">{s.userName}</p><p className="text-xs text-slate-400">{fmtDate(s.updateDate)} · {s.hoursSpent}h</p></div>
+            <div className="flex-1"><p className="font-semibold text-sm">{s.userName}</p><p className="text-xs text-slate-400">{fmtDate(s.updateDate)} · {s.hoursSpent}h ({s.billableHours}b / {s.nonBillableHours}nb)</p></div>
             <StatusPill value={s.status} />
           </div>
           <p className="text-sm"><span className="font-semibold">Done:</span> {s.workCompleted}</p>
