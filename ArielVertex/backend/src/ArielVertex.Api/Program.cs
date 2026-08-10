@@ -110,3 +110,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "ariel-ver
 app.MapHealthChecks("/health/ready");
 
 app.Run();
+
+// Exposes the top-level entry point to WebApplicationFactory without changing runtime behavior.
+public partial class Program;
