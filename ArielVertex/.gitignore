@@ -11,6 +11,13 @@ App_Data/
 node_modules/
 dist/
 .vite/
+frontend/.npm-cache/
+frontend/coverage/
+*.tsbuildinfo
+
+# Test and coverage output
+TestResults/
+coverage-reports/
 
 # Env / secrets
 .env.local

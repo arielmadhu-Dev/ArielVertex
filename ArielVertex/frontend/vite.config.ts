@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
@@ -12,5 +12,11 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://localhost:5041', changeOrigin: true },
     },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+    restoreMocks: true,
+    clearMocks: true,
   },
 })
