@@ -130,6 +130,12 @@ public interface IJobService
     Task<JobResult> RunDailyExpenseSummaryAsync(CancellationToken ct = default);
     /// <summary>Weekly expense summary to the HR Director (+ any configured recipients).</summary>
     Task<JobResult> RunWeeklyExpenseSummaryAsync(CancellationToken ct = default);
+    /// <summary>Due-date reminders for bills approaching their due date (7d, 3d, 1d).</summary>
+    Task<JobResult> RunBillDueRemindersAsync(CancellationToken ct = default);
+    /// <summary>Every-evening bill summary to the configured daily recipients.</summary>
+    Task<JobResult> RunDailyBillSummaryAsync(CancellationToken ct = default);
+    /// <summary>Weekly bill summary to the configured recipients.</summary>
+    Task<JobResult> RunWeeklyBillSummaryAsync(CancellationToken ct = default);
 }
 
 /// <summary>Delivers a message to a Microsoft Teams channel via an Incoming Webhook (config-gated).</summary>
@@ -152,6 +158,16 @@ public interface IMinutesGenerator
     Task<MinutesDraft> GenerateAsync(
         string title, DateTime meetingDate, string? location,
         IReadOnlyList<string> attendees, string rawNotes, CancellationToken ct = default);
+}
+
+/// <summary>
+/// AI-powered bill/invoice data extraction. Sends the uploaded file (PDF or image) to an LLM
+/// with vision capabilities and returns structured bill fields. Falls back gracefully on error.
+/// </summary>
+public interface IBillExtractor
+{
+    bool IsConfigured { get; }
+    Task<Contracts.ExtractedBillData?> ExtractAsync(byte[] fileContent, string fileName, string contentType, CancellationToken ct = default);
 }
 
 /// <summary>

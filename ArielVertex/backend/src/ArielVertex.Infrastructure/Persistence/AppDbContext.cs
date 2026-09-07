@@ -31,6 +31,8 @@ public class AppDbContext : DbContext
     public DbSet<MicrosoftSyncLog> MicrosoftSyncLogs => Set<MicrosoftSyncLog>();
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<ExpenseSetting> ExpenseSettings => Set<ExpenseSetting>();
+    public DbSet<Bill> Bills => Set<Bill>();
+    public DbSet<BillSetting> BillSettings => Set<BillSetting>();
     public DbSet<Pip> Pips => Set<Pip>();
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
     public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
@@ -208,6 +210,15 @@ public class AppDbContext : DbContext
         b.Entity<Expense>(e =>
         {
             e.HasIndex(x => x.Status);
+            e.Property(x => x.Amount).HasPrecision(12, 2);
+            e.HasOne(x => x.RaisedBy).WithMany().HasForeignKey(x => x.RaisedById).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Approver).WithMany().HasForeignKey(x => x.ApproverId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<Bill>(e =>
+        {
+            e.HasIndex(x => x.Status);
+            e.HasIndex(x => x.DueDate);
             e.Property(x => x.Amount).HasPrecision(12, 2);
             e.HasOne(x => x.RaisedBy).WithMany().HasForeignKey(x => x.RaisedById).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Approver).WithMany().HasForeignKey(x => x.ApproverId).OnDelete(DeleteBehavior.SetNull);

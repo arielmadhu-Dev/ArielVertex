@@ -23,6 +23,9 @@ export default function Expenses() {
   const enums = useEnums()
   const [open, setOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [rejecting, setRejecting] = useState<ExpenseItem | null>(null)
+  const [reason, setReason] = useState('')
+  const [reasonError, setReasonError] = useState('')
   const canManage = has(P.ExpensesManage)
   const canConfigure = has(P.ExpensesConfigure)
 
@@ -96,7 +99,7 @@ export default function Expenses() {
                       <div className="flex items-center gap-1.5 justify-end">
                         {e.canApprove && <>
                           <Button size="sm" variant="secondary" icon={<CheckCircle2 className="h-4 w-4" />} onClick={() => act.mutate({ id: e.id, action: 'approve', note: 'Approved' })}>Approve</Button>
-                          <Button size="sm" variant="ghost" icon={<XCircle className="h-4 w-4" />} onClick={() => { const n = prompt('Reason for rejection?') ?? ''; act.mutate({ id: e.id, action: 'reject', note: n }) }}>Reject</Button>
+                          <Button size="sm" variant="ghost" icon={<XCircle className="h-4 w-4" />} onClick={() => { setReason(''); setReasonError(''); setRejecting(e) }}>Reject</Button>
                         </>}
                         {e.canManage && e.status !== 'Paid' && e.status !== 'Rejected' && (!e.approvalRequired || e.status === 'Approved') &&
                           <Button size="sm" icon={<IndianRupee className="h-4 w-4" />} onClick={() => act.mutate({ id: e.id, action: 'pay' })}>Mark paid</Button>}
@@ -122,6 +125,26 @@ export default function Expenses() {
           <Field label="Invoice number" hint="Attach the proof file after saving"><Input value={form.invoiceNumber} onChange={(e) => setForm({ ...form, invoiceNumber: e.target.value })} /></Field>
           <div className="sm:col-span-2"><Field label="Notes"><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field></div>
           <div className="sm:col-span-2"><label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.approvalRequired} onChange={(e) => setForm({ ...form, approvalRequired: e.target.checked })} /> Requires approval before payment</label></div>
+        </div>
+      </Modal>
+
+      {/* Reject expense */}
+      <Modal open={!!rejecting} onClose={() => setRejecting(null)} title="Reject expense" subtitle={rejecting?.title} size="sm"
+        footer={<>
+          <Button variant="secondary" onClick={() => setRejecting(null)}>Cancel</Button>
+          <Button variant="danger" icon={<XCircle className="h-4 w-4" />} loading={act.isPending}
+            onClick={() => {
+              const r = reason.trim()
+              if (!r) { setReasonError('Please provide a reason before rejecting.'); return }
+              act.mutate({ id: rejecting!.id, action: 'reject', note: r })
+              setRejecting(null)
+            }}>Confirm rejection</Button>
+        </>}>
+        <div className="space-y-4">
+          <Field label="Reason for rejection" required error={reasonError}>
+            <Textarea rows={4} value={reason} onChange={(e) => { setReason(e.target.value); if (reasonError) setReasonError('') }}
+              placeholder="Why are you rejecting this expense?" autoFocus />
+          </Field>
         </div>
       </Modal>
 

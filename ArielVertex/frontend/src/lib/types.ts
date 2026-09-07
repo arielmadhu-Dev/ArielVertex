@@ -152,3 +152,22 @@ export interface ExpenseSettings {
   approvalRequiredByDefault: boolean; approverRoles: string[]
   dailySummaryRecipients: string; weeklySummaryRecipients: string; teamsWebhookUrl?: string
 }
+
+export interface BillItem {
+  id: number; title: string; description: string; category: string
+  amount: number; currency: string; vendor: string; billDate: string; dueDate?: string; paymentMethod: string
+  invoiceNumber?: string; hasInvoiceFile: boolean; invoiceFileName?: string
+  status: string; statusLabel: string; approvalRequired: boolean
+  raisedById: number; raisedByName: string; approverName?: string; decidedAt?: string
+  decisionNote?: string; paidAt?: string; createdAt: string; canApprove: boolean; canManage: boolean
+  daysUntilDue: number
+}
+export interface BillSummary { total: number; pendingApproval: number; paid: number; overdue: number; totalAmount: number; paidAmount: number }
+export interface BillSettings {
+  approvalRequiredByDefault: boolean; approverRoles: string[]
+  dailySummaryRecipients: string; weeklySummaryRecipients: string
+  reminderDaysBefore: string; reminderRecipients: string; teamsWebhookUrl?: string
+}
+export interface ExtractedBillData {
+  vendor?: string; amount?: number; dueDate?: string; billDate?: string; category?: string; invoiceNumber?: string
+}

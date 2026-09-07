@@ -42,7 +42,7 @@ public class AutomationBackgroundService : BackgroundService
         }
     }
 
-    private DateOnly _lastDaily, _lastWeekly;
+    private DateOnly _lastDaily, _lastWeekly, _lastBillDaily, _lastBillWeekly;
 
     private async Task RunCycleAsync(CancellationToken ct)
     {
@@ -63,6 +63,14 @@ public class AutomationBackgroundService : BackgroundService
             if (now.Hour >= 18 && today != _lastDaily) { await jobs.RunDailyExpenseSummaryAsync(ct); _lastDaily = today; }
             // Weekly expense summary on Fridays (once).
             if (now.DayOfWeek == DayOfWeek.Friday && now.Hour >= 18 && today != _lastWeekly) { await jobs.RunWeeklyExpenseSummaryAsync(ct); _lastWeekly = today; }
+
+            // Bill due-date reminders (every cycle — check for 7d/3d/1d thresholds).
+            if (await jobs.RunBillDueRemindersAsync(ct) is { } r3) { /* logged below */ }
+
+            // Daily bill summary (every evening, once per day).
+            if (now.Hour >= 18 && today != _lastBillDaily) { await jobs.RunDailyBillSummaryAsync(ct); _lastBillDaily = today; }
+            // Weekly bill summary on Fridays.
+            if (now.DayOfWeek == DayOfWeek.Friday && now.Hour >= 18 && today != _lastBillWeekly) { await jobs.RunWeeklyBillSummaryAsync(ct); _lastBillWeekly = today; }
 
             _log.LogInformation("Automation cycle complete. {Msg}", r1.Message);
         }

@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, FolderKanban, ClipboardCheck, MessageSquareQuote, LineChart,
   UsersRound, UserPlus, GaugeCircle, FileBarChart, ShieldCheck, CalendarClock, Gauge, Wallet,
-  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart, LucideIcon,
+  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart, Receipt, LucideIcon,
 } from 'lucide-react'
 import type { CurrentUser } from '../lib/types'
 
@@ -16,6 +16,8 @@ export const P = {
   SyncRun: 'sync.run', AdminSettings: 'admin.settings',
   ExpensesManage: 'expenses.manage', ExpensesApprove: 'expenses.approve',
   ExpensesViewAll: 'expenses.view.all', ExpensesConfigure: 'expenses.configure',
+  BillsManage: 'bills.manage', BillsApprove: 'bills.approve',
+  BillsViewAll: 'bills.view.all', BillsConfigure: 'bills.configure',
   PipView: 'pip.view', PipManage: 'pip.manage', ConfigManage: 'config.manage',
   MinutesManage: 'minutes.manage',
   // Performance management (ported)
@@ -70,6 +72,7 @@ export const navGroups: NavGroup[] = [
       { to: '/hiring', label: 'Hiring Requests', icon: UserPlus, feature: 'hiring', show: (u) => any(u, P.ResourcesRequest, P.ResourcesManage) },
       { to: '/employees', label: 'Employees', icon: UsersRound, show: (u) => any(u, P.EmployeesManage, P.ProjectsViewAll) },
       { to: '/expenses', label: 'Expenses', icon: Wallet, feature: 'expenses', show: (u) => any(u, P.ExpensesManage, P.ExpensesApprove, P.ExpensesViewAll) },
+      { to: '/bills', label: 'Bills', icon: Receipt, feature: 'bills', show: (u) => any(u, P.BillsManage, P.BillsApprove, P.BillsViewAll) },
       { to: '/reports', label: 'Reports', icon: FileBarChart, feature: 'reports', show: (u) => any(u, P.ReportsView) },
     ],
   },

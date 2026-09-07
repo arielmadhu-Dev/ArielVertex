@@ -12,6 +12,7 @@ public static class Labels
         PortalRole.CeoAdmin => "CEO / Admin",
         PortalRole.HrManager => "HR Manager",
         PortalRole.HrDirector => "HR Director",
+        PortalRole.HrRecruiter => "HR Recruiter",
         PortalRole.ProjectManager => "Project Manager",
         PortalRole.ProjectCoordinator => "Project Coordinator",
         PortalRole.BusinessDirector => "Business Director",
@@ -40,6 +41,8 @@ public static class Labels
     public static string ExpenseStatus(ExpenseStatus s) => Spaced(s.ToString());
 
     public static string ExpenseCategory(ExpenseCategory c) => Spaced(c.ToString());
+
+    public static string BillStatus(BillStatus s) => Spaced(s.ToString());
 
     public static string PipStatus(PipStatus s) => Spaced(s.ToString());
 

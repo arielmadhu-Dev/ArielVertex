@@ -57,6 +57,7 @@ public static class DataSeeder
         var amit = Mk("Arc Menon", "arc", PortalRole.CeoAdmin, "Chief Executive Officer", dAdm);
         var manita = Mk("Mareena Thomas", "mareena", PortalRole.HrManager, "HR Manager", dHr);
         var shuchita = Mk("Surbeen Kaur", "surbeen", PortalRole.HrDirector, "HR Director", dHr);
+        var anjali  = Mk("anjali Kaur", "anjali", PortalRole.HrRecruiter, "HR Recruiter", dHr);
         var sudhir = Mk("Shepherd Dsouza", "shepherd", PortalRole.ProjectManager, "Project Manager", dDel);
         var madhu = Mk("Maria Fernandes", "maria", PortalRole.ProjectCoordinator, "Project Coordinator", dDel);
         var amrit = Mk("Arveen Malhotra", "arveen", PortalRole.BusinessDirector, "Business Director", dBiz);
@@ -72,7 +73,7 @@ public static class DataSeeder
         var sneha = Mk("Sneha Pillai", "sneha", PortalRole.Employee, "QA Engineer", dQa, "Automation, Selenium, API Testing");
         var vikram = Mk("Vikram Bose", "vikram", PortalRole.Employee, "Software Engineer", dEng, "Java, Spring, Angular");
 
-        var users = new[] { superAdmin, amit, manita, shuchita, sudhir, madhu, amrit, arun, sid, komal,
+        var users = new[] { superAdmin, amit, manita, shuchita, anjali, sudhir, madhu, amrit, arun, sid, komal,
             nikhil, amandeep, rajat, akshay, rahul, priya, sneha, vikram };
         db.Users.AddRange(users);
         await db.SaveChangesAsync();
@@ -279,6 +280,22 @@ public static class DataSeeder
             new Expense { Title = "Pantry supplies (coffee, tea)", Category = ExpenseCategory.Refreshments, Amount = 3100m, Vendor = "BigBasket", ExpenseDate = now.AddDays(-1), PaymentMethod = "Card", InvoiceNumber = "BB-88231", Status = ExpenseStatus.PaymentRequested, ApprovalRequired = true, RaisedById = amandeep.Id },
             new Expense { Title = "AC servicing - 3rd floor", Category = ExpenseCategory.Maintenance, Amount = 6800m, Vendor = "CoolCare Services", ExpenseDate = now, PaymentMethod = "Bank Transfer", InvoiceNumber = "CC-5540", Status = ExpenseStatus.Approved, ApprovalRequired = true, RaisedById = amandeep.Id, ApproverId = shuchita.Id, DecidedAt = now, DecisionNote = "Approved." }
         );
+
+        // ---- Bill module (Accounts Payable) ----
+        db.BillSettings.Add(new BillSetting
+        {
+            ApprovalRequiredByDefault = true,
+            ApproverRoles = "HrDirector,Accountant",
+            DailySummaryRecipients = amit.Email,
+            WeeklySummaryRecipients = shuchita.Email,
+            ReminderDaysBefore = "7,3,1",
+            ReminderRecipients = shuchita.Email
+        });
+        db.Bills.AddRange(
+            new Bill { Title = "Office rent - September", Category = "Office Rent", Amount = 85000m, Vendor = "ABC Properties", BillDate = now.AddDays(-5), DueDate = now.AddDays(25), PaymentMethod = "Bank Transfer", InvoiceNumber = "RENT-2026-09", Status = BillStatus.Submitted, ApprovalRequired = true, RaisedById = amandeep.Id },
+            new Bill { Title = "AWS cloud hosting", Category = "Software Subscription", Amount = 12500m, Vendor = "Amazon Web Services", BillDate = now.AddDays(-10), DueDate = now.AddDays(5), PaymentMethod = "Card", InvoiceNumber = "AWS-INV-88231", Status = BillStatus.Approved, ApprovalRequired = true, RaisedById = amandeep.Id, ApproverId = shuchita.Id, DecidedAt = now.AddDays(-2), DecisionNote = "Approved." },
+            new Bill { Title = "Internet broadband - Q3", Category = "Utilities", Amount = 4800m, Vendor = "Jio Fiber", BillDate = now.AddDays(-30), DueDate = now.AddDays(-2), PaymentMethod = "UPI", InvoiceNumber = "JIO-Q3-441", Status = BillStatus.Paid, ApprovalRequired = false, RaisedById = amandeep.Id, PaidAt = now.AddDays(-1) }
+        );
         // ---- Admin-editable configuration (settings, feature flags) ----
         PlatformSetting Ps(string key, string val, string group, string label, string type, string desc) =>
             new() { Key = key, Value = val, Group = group, Label = label, Type = type, Description = desc };
@@ -286,6 +303,7 @@ public static class DataSeeder
             Ps("pip.enabled", "true", "Performance Improvement (PIP)", "Auto-PIP enabled", "bool", "Automatically start a PIP when an approved score falls below the threshold."),
             Ps("pip.thresholdPercent", "50", "Performance Improvement (PIP)", "PIP threshold (%)", "number", "Approved performance below this percentage auto-initiates a PIP and emails HR + the employee."),
             Ps("feature.expenses", "true", "Modules", "Expenses (Front Desk)", "bool", "Show/hide the Expenses module across the portal."),
+            Ps("feature.bills", "true", "Modules", "Bills (Accounts Payable)", "bool", "Show/hide the Bills module across the portal."),
             Ps("feature.pip", "true", "Modules", "Performance Improvement Plans", "bool", "Show/hide the PIP module."),
             Ps("feature.reviews", "true", "Modules", "Reviews", "bool", "Show/hide the Reviews module."),
             Ps("feature.feedback", "true", "Modules", "Feedback", "bool", "Show/hide the Feedback module."),

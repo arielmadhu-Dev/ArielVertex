@@ -13,6 +13,7 @@ const demoUsers = [
   { name: 'Arc — CEO', email: 'arc@arielsoftwares.in' },
   { name: 'Mareena — HR Manager', email: 'mareena@arielsoftwares.in' },
   { name: 'Surbeen — HR Director', email: 'surbeen@arielsoftwares.in' },
+  { name: 'Anjali — HR Recruiter', email: 'anjali@arielsoftwares.in' },
   { name: 'Shepherd — Project Manager', email: 'shepherd@arielsoftwares.in' },
   { name: 'Maria — Project Coordinator', email: 'maria@arielsoftwares.in' },
   { name: 'Arveen — Business Director', email: 'arveen@arielsoftwares.in' },

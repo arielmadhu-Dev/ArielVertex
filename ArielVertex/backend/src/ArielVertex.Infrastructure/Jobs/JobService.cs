@@ -181,4 +181,113 @@ public class JobService : IJobService
         return new JobResult($"{label.ToLower()}-expense-summary", emails.Count,
             $"{label} summary sent to {emails.Count} recipient(s): {expenses.Count} expenses, ₹{total.ToString("N0", CultureInfo.InvariantCulture)}.");
     }
+
+    // ---- Bill due-date reminders ----
+    public async Task<JobResult> RunBillDueRemindersAsync(CancellationToken ct = default)
+    {
+        var settings = await _db.BillSettings.FirstOrDefaultAsync(ct);
+        if (settings is null) return new JobResult("bill-reminders", 0, "No bill settings configured.");
+
+        var reminderDays = settings.ReminderDaysBefore
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => int.TryParse(s, out var d) ? d : -1)
+            .Where(d => d > 0).ToList();
+        if (reminderDays.Count == 0) return new JobResult("bill-reminders", 0, "No reminder days configured.");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var now = DateTime.UtcNow;
+        var bills = await _db.Bills.Include(b => b.RaisedBy)
+            .Where(b => b.Status != BillStatus.Paid && b.Status != BillStatus.Rejected && b.DueDate != null)
+            .AsNoTracking().ToListAsync(ct);
+
+        var reminded = 0;
+        foreach (var bill in bills)
+        {
+            var daysUntilDue = (bill.DueDate!.Value.Date - today.ToDateTime(TimeOnly.MinValue)).Days;
+            if (!reminderDays.Contains(daysUntilDue)) continue;
+
+            // Avoid duplicate reminders: check if LastReminderAt is within the last 20 hours
+            if (bill.LastReminderAt.HasValue && (now - bill.LastReminderAt.Value).TotalHours < 20) continue;
+
+            // Update LastReminderAt on the tracked entity
+            var tracked = await _db.Bills.FindAsync(new object[] { bill.Id }, ct);
+            if (tracked is not null)
+            {
+                tracked.LastReminderAt = now;
+                await _db.SaveChangesAsync(ct);
+            }
+
+            var recipients = settings.ReminderRecipients
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var emails = recipients.Select(x => x.ToLowerInvariant()).Distinct().ToList();
+            var userIds = await _db.Users.Where(u => emails.Contains(u.Email)).Select(u => u.Id).ToListAsync(ct);
+
+            var title = $"Bill due in {daysUntilDue} day(s): {bill.Title}";
+            var message = $"Bill '{bill.Title}' from {bill.Vendor} for ₹{bill.Amount:N0} is due on {bill.DueDate:dd MMM yyyy}.";
+            if (userIds.Count > 0)
+                await _notify.NotifyManyAsync(userIds, NotificationType.General, title, message, "/bills", ct);
+
+            if (_integration.OutlookNotificationsLive && _azure.IsConfigured)
+            {
+                var html = $"<h3>{title}</h3><p>{System.Net.WebUtility.HtmlEncode(message)}</p>";
+                foreach (var email in emails)
+                    try { await _graph.SendMailAsync(email, title, html, ct); } catch { }
+            }
+
+            if (!string.IsNullOrWhiteSpace(settings.TeamsWebhookUrl))
+                try { await _teams.SendAsync(settings.TeamsWebhookUrl!, title, message, ct); } catch { }
+
+            reminded++;
+        }
+        return new JobResult("bill-reminders", reminded, $"Sent {reminded} bill reminder(s).");
+    }
+
+    // ---- Bill summaries ----
+    public Task<JobResult> RunDailyBillSummaryAsync(CancellationToken ct = default)
+        => BillSummaryAsync("Daily", DateTime.UtcNow.Date, s => s.DailySummaryRecipients, ct);
+
+    public Task<JobResult> RunWeeklyBillSummaryAsync(CancellationToken ct = default)
+        => BillSummaryAsync("Weekly", DateTime.UtcNow.Date.AddDays(-7), s => s.WeeklySummaryRecipients, ct);
+
+    private async Task<JobResult> BillSummaryAsync(string label, DateTime from, Func<Domain.Entities.BillSetting, string> recipients, CancellationToken ct)
+    {
+        var settings = await _db.BillSettings.FirstOrDefaultAsync(ct);
+        if (settings is null) return new JobResult($"{label.ToLower()}-bill-summary", 0, "No bill settings configured.");
+
+        var bills = await _db.Bills.Include(b => b.RaisedBy)
+            .Where(b => b.CreatedAt >= from).AsNoTracking().ToListAsync(ct);
+
+        var total = bills.Sum(b => b.Amount);
+        var pendingApproval = bills.Count(b => b.Status == BillStatus.Submitted && b.ApprovalRequired);
+        var paid = bills.Where(b => b.Status == BillStatus.Paid).Sum(b => b.Amount);
+        var overdue = bills.Count(b => b.Status == BillStatus.Overdue);
+
+        var title = $"{label} Bill Summary — {DateTime.UtcNow:dd MMM yyyy}";
+        var lines = bills.OrderByDescending(b => b.CreatedAt).Take(15)
+            .Select(b => $"• {b.Title} — ₹{b.Amount.ToString("N0", CultureInfo.InvariantCulture)} [{b.Status}]");
+        var body = $"{bills.Count} bill(s), total ₹{total.ToString("N0", CultureInfo.InvariantCulture)}. " +
+                   $"Paid ₹{paid.ToString("N0", CultureInfo.InvariantCulture)}, {pendingApproval} awaiting approval, {overdue} overdue.\n\n" +
+                   string.Join("\n", lines);
+        var message = $"{bills.Count} bill(s), ₹{total.ToString("N0", CultureInfo.InvariantCulture)} total; {pendingApproval} awaiting approval, {overdue} overdue.";
+
+        var emails = (recipients(settings) ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(x => x.ToLowerInvariant()).Distinct().ToList();
+
+        var users = await _db.Users.Where(u => emails.Contains(u.Email)).Select(u => u.Id).ToListAsync(ct);
+        if (users.Count > 0)
+            await _notify.NotifyManyAsync(users, NotificationType.ReportGenerated, title, message, "/bills", ct);
+
+        if (_integration.OutlookNotificationsLive && _azure.IsConfigured)
+        {
+            var html = $"<h3>{title}</h3><p>{System.Net.WebUtility.HtmlEncode(message)}</p><pre style='font-family:inherit'>{System.Net.WebUtility.HtmlEncode(string.Join("\n", lines))}</pre>";
+            foreach (var email in emails)
+                try { await _graph.SendMailAsync(email, title, html, ct); } catch { }
+        }
+
+        if (!string.IsNullOrWhiteSpace(settings.TeamsWebhookUrl))
+            try { await _teams.SendAsync(settings.TeamsWebhookUrl!, title, body, ct); } catch { }
+
+        return new JobResult($"{label.ToLower()}-bill-summary", emails.Count,
+            $"{label} summary sent to {emails.Count} recipient(s): {bills.Count} bills, ₹{total.ToString("N0", CultureInfo.InvariantCulture)}.");
+    }
 }

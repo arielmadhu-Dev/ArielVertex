@@ -30,6 +30,7 @@ public class MetaController : ApiControllerBase
         callTypes = Opts<CallType>(t => t.ToString()),
         expenseCategories = Opts<ExpenseCategory>(Labels.ExpenseCategory),
         expenseStatuses = Opts<ExpenseStatus>(Labels.ExpenseStatus),
+        billStatuses = Opts<BillStatus>(Labels.BillStatus),
         // Performance-management enums (ported modules)
         cycleStatuses = Opts<CycleStatus>(s => s.ToString()),
         appraisalStages = Opts<AppraisalStage>(s => System.Text.RegularExpressions.Regex.Replace(s.ToString(), "(?<=[a-z])(?=[A-Z])", " ")),

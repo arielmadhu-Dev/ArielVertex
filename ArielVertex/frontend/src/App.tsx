@@ -18,6 +18,7 @@ import Resources from './pages/Resources'
 import Hiring from './pages/Hiring'
 import Employees from './pages/Employees'
 import Expenses from './pages/Expenses'
+import Bills from './pages/Bills'
 import PipPage from './pages/Pip'
 import Meetings from './pages/Meetings'
 import Configuration from './pages/Configuration'
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="/hiring" element={<Hiring />} />
           <Route path="/employees" element={<Employees />} />
           <Route path="/expenses" element={<Expenses />} />
+          <Route path="/bills" element={<Bills />} />
           <Route path="/pip" element={<PipPage />} />
           <Route path="/meetings" element={<Meetings />} />
           <Route path="/configuration" element={<Configuration />} />

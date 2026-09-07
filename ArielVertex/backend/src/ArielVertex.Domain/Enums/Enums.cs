@@ -19,7 +19,8 @@ public enum PortalRole
     SystemAdmin = 10,
     Frontdesk = 11,
     Accountant = 12,
-    Employee = 13
+    Employee = 13,
+    HrRecruiter = 14, 
 }
 
 /// <summary>Role a user holds *on a specific project* (spec section 5).</summary>
@@ -126,6 +127,12 @@ public enum ExpenseStatus
     Draft = 0, PaymentRequested = 1, Approved = 2, Rejected = 3, Paid = 4
 }
 
+/// <summary>Vendor bill (accounts payable) lifecycle.</summary>
+public enum BillStatus
+{
+    Draft = 0, Submitted = 1, Approved = 2, Rejected = 3, Paid = 4, Overdue = 5
+}
+
 /// <summary>Performance Improvement Plan lifecycle.</summary>
 public enum PipStatus { Open = 0, InProgress = 1, Completed = 2, Closed = 3 }
 
@@ -151,5 +158,8 @@ public enum AuditAction
     MinutesGenerated = 26, MinutesApproved = 27, MinutesSent = 28,
     CycleCreated = 29, CycleActivated = 30, CycleClosed = 31, AppraisalReleased = 32,
     GoalAssigned = 33, PromotionRecommended = 34, PromotionDecided = 35, TrainingAssigned = 36,
-    EmployeeUpdated = 37
+    EmployeeUpdated = 37,
+    BillCreated = 38, BillSubmitted = 39, BillApproved = 40,
+    BillRejected = 41, BillPaid = 42, BillOverdue = 43, BillSettingsChanged = 44,
+    BillReminderSent = 45
 }

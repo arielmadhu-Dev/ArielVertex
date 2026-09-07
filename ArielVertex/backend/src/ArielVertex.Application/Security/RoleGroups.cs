@@ -5,7 +5,7 @@ namespace ArielVertex.Application.Security;
 /// <summary>Convenience groupings used for coarse UI/navigation decisions and seeding.</summary>
 public static class RoleGroups
 {
-    public static bool IsHr(PortalRole r) => r is PortalRole.HrManager or PortalRole.HrDirector;
+    public static bool IsHr(PortalRole r) => r is PortalRole.HrManager or PortalRole.HrDirector or PortalRole.HrRecruiter;
 
     public static bool IsManagement(PortalRole r) =>
         r is PortalRole.SuperAdmin or PortalRole.CeoAdmin;
@@ -23,7 +23,7 @@ public static class RoleGroups
     public static string DashboardFor(PortalRole r) => r switch
     {
         PortalRole.SuperAdmin or PortalRole.CeoAdmin or PortalRole.SystemAdmin => "admin",
-        PortalRole.HrManager or PortalRole.HrDirector => "hr",
+        PortalRole.HrManager or PortalRole.HrDirector or PortalRole.HrRecruiter => "hr",
         PortalRole.ProjectManager or PortalRole.ProjectCoordinator => "delivery",
         PortalRole.BusinessDirector or PortalRole.BusinessManager or PortalRole.BusinessPerson => "business",
         _ => "employee"

@@ -51,6 +51,9 @@ public static class DependencyInjection
         services.AddHttpClient("anthropic");
         services.AddScoped<IMinutesGenerator, MinutesGenerator>();
 
+        // AI bill extraction (same Anthropic/Claude backend, vision-capable).
+        services.AddScoped<IBillExtractor, BillExtractor>();
+
         // Operational automation scheduler (spec 6.6/6.8/6.9).
         services.Configure<Jobs.AutomationSettings>(config.GetSection("Automation"));
         services.AddHostedService<Jobs.AutomationBackgroundService>();
