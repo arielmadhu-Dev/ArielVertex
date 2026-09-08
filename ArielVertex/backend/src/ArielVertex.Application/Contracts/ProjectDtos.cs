@@ -44,4 +44,4 @@ public record ScheduleCallRequest(
     [Required, MaxLength(160)] string Title, string? Agenda, CallType Type,
     [Required] DateTime ScheduledAt, [Range(15, 240)] int DurationMinutes, string? Attendees);
 
-public record AddCommentRequest([Required, MaxLength(2000)] string Message);
+public record AddCommentRequest([Required, MaxLength(2000)] string Message, [Range(0, 24)] decimal Hours);

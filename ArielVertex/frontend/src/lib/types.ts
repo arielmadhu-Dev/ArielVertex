@@ -40,7 +40,8 @@ export interface ProjectDetail {
 export interface StatusUpdate {
   id: number; projectId: number; projectName: string; userId: number; userName: string
   avatarColor: string; updateDate: string; workCompleted: string; nextPlannedWork: string
-  blockers: string; dependencies: string; hoursSpent: number; status: string
+  blockers: string; dependencies: string; billableHours: number; nonBillableHours: number
+  hoursSpent: number; status: string
   internalNote?: string; clientShareableSummary: string; createdAt: string
 }
 

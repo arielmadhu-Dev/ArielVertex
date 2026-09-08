@@ -54,7 +54,7 @@ public enum Visibility { Internal = 0, BusinessVisible = 1, ClientShareable = 2 
 public enum CallType { Customer = 0, Internal = 1 }
 
 /// <summary>Developer status update health for a given day (spec 6.6).</summary>
-public enum UpdateStatus { OnTrack = 0, AtRisk = 1, Blocked = 2 }
+public enum UpdateStatus { OnTrack = 0, AtRisk = 1, Blocked = 2, Completed = 3 }
 
 public enum ReviewType { ProjectReview = 0, CodeReview = 1, GeneralFeedback = 2 }
 
@@ -107,7 +107,7 @@ public enum NotificationType
     ReviewRequested = 0, ReviewScheduled = 1, FeedbackDue = 2, FeedbackSubmitted = 3,
     FeedbackPublished = 4, DocumentUploaded = 5, StatusMissed = 6,
     ResourceRequestCreated = 7, ResourceRequestUpdated = 8, ReportGenerated = 9,
-    CallScheduled = 10, General = 11
+    CallScheduled = 10, General = 11, CommentSummary = 12
 }
 
 public enum NotificationChannel { Portal = 0, Teams = 1, Outlook = 2 }

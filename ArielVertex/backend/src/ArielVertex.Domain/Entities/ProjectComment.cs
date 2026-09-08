@@ -15,4 +15,7 @@ public class ProjectComment : BaseEntity
     public User? Author { get; set; }
 
     public string Message { get; set; } = string.Empty;
+
+    /// <summary>Optional hours the business stakeholder is logging against the project alongside the comment.</summary>
+    public decimal Hours { get; set; }
 }

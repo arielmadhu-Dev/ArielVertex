@@ -21,7 +21,9 @@ public class StatusUpdate : BaseEntity
     public string NextPlannedWork { get; set; } = string.Empty;
     public string Blockers { get; set; } = string.Empty;
     public string Dependencies { get; set; } = string.Empty;
-    public decimal HoursSpent { get; set; }
+    public decimal BillableHours { get; set; }
+    public decimal NonBillableHours { get; set; }
+    public decimal HoursSpent => BillableHours + NonBillableHours;
     public UpdateStatus Status { get; set; } = UpdateStatus.OnTrack;
 
     public string InternalNote { get; set; } = string.Empty;         // never client-visible

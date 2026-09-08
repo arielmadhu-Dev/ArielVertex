@@ -128,19 +128,20 @@ public static class DataSeeder
         await db.SaveChangesAsync();
 
         // ---- Status updates (spec 6.6) — Sneha intentionally missing today ----
-        StatusUpdate SU(User u, int daysAgo, UpdateStatus st, string done, string next, string blockers, decimal hrs, string client)
+        StatusUpdate SU(User u, int daysAgo, UpdateStatus st, string done, string next, string blockers, decimal billable, decimal nonBillable, string client)
             => new()
             {
                 ProjectId = mib.Id, UserId = u.Id, UpdateDate = now.AddDays(-daysAgo).Date,
-                WorkCompleted = done, NextPlannedWork = next, Blockers = blockers, HoursSpent = hrs, Status = st,
+                WorkCompleted = done, NextPlannedWork = next, Blockers = blockers,
+                BillableHours = billable, NonBillableHours = nonBillable, Status = st,
                 InternalNote = blockers.Length > 0 ? "Escalated to tech lead." : "",
                 ClientShareableSummary = client
             };
         db.StatusUpdates.AddRange(
-            SU(rahul, 1, UpdateStatus.OnTrack, "Completed portfolio dashboard API and unit tests.", "Wire dashboard charts to live endpoints.", "", 8, "Portfolio dashboard backend completed."),
-            SU(rahul, 0, UpdateStatus.OnTrack, "Integrated charts, fixed pagination.", "Start transactions export.", "", 7.5m, "Dashboard charts now live."),
-            SU(priya, 1, UpdateStatus.AtRisk, "Built onboarding flow UI.", "Handle KYC validation states.", "Awaiting KYC rules from client.", 6, "Onboarding screens in progress."),
-            SU(priya, 0, UpdateStatus.Blocked, "Blocked on KYC ruleset.", "Resume once ruleset received.", "KYC ruleset still pending from MIB Financial.", 3, "Onboarding blocked pending client input.")
+            SU(rahul, 1, UpdateStatus.OnTrack, "Completed portfolio dashboard API and unit tests.", "Wire dashboard charts to live endpoints.", "", 7, 1, "Portfolio dashboard backend completed."),
+            SU(rahul, 0, UpdateStatus.OnTrack, "Integrated charts, fixed pagination.", "Start transactions export.", "", 7.5m, 0, "Dashboard charts now live."),
+            SU(priya, 1, UpdateStatus.AtRisk, "Built onboarding flow UI.", "Handle KYC validation states.", "Awaiting KYC rules from client.", 5, 1, "Onboarding screens in progress."),
+            SU(priya, 0, UpdateStatus.Blocked, "Blocked on KYC ruleset.", "Resume once ruleset received.", "KYC ruleset still pending from MIB Financial.", 1, 2, "Onboarding blocked pending client input.")
         );
         await db.SaveChangesAsync();
 
