@@ -44,6 +44,8 @@ public static class Labels
 
     public static string BillStatus(BillStatus s) => Spaced(s.ToString());
 
+    public static string PettyCashEntryStatus(PettyCashEntryStatus s) => Spaced(s.ToString());
+
     public static string PipStatus(PipStatus s) => Spaced(s.ToString());
 
     public static string PipOutcome(PipOutcome o) => Spaced(o.ToString());

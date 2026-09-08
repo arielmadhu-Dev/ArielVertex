@@ -56,13 +56,13 @@ public class PromotionsController : ApiControllerBase
             EmployeeId = emp.Id, CurrentDesignation = emp.Designation,
             ProposedDesignation = req.ProposedDesignation.Trim(), ProposedSalary = req.ProposedSalary,
             Justification = req.Justification?.Trim() ?? "", Stage = PromotionStage.ManagerRecommended,
+            RecommendationType = req.RecommendationType,
             RecommendedById = _me.Id
         };
         _db.Promotions.Add(p);
         await _db.SaveChangesAsync();
-        await _notify.NotifyAsync(emp.Id, NotificationType.General, "Promotion recommended",
-            $"You have been recommended for {p.ProposedDesignation}.", "/promotions");
-        await _audit.WriteAsync(AuditAction.PromotionRecommended, "Promotion", p.Id, $"{emp.Name} → {p.ProposedDesignation}.");
+        try { await _notify.NotifyAsync(emp.Id, NotificationType.General, "Promotion recommended", $"You have been recommended for {p.ProposedDesignation}.", "/promotions"); } catch { }
+        try { await _audit.WriteAsync(AuditAction.PromotionRecommended, "Promotion", p.Id, $"{emp.Name} → {p.ProposedDesignation}."); } catch { }
         return Ok((await Loaded(p.Id)).ToDto());
     }
 

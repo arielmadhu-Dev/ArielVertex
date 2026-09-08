@@ -32,7 +32,8 @@ public record CreateBillRequest(
     DateTime? DueDate,
     string? PaymentMethod,
     string? InvoiceNumber,
-    bool ApprovalRequired);
+    bool ApprovalRequired,
+    DateTime? PaidDate);
 
 public record BillDecisionRequest(string? Note);
 

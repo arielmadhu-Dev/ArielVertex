@@ -43,13 +43,14 @@ public record UpdateGoalRequest([Range(0, 100)] int Progress, GoalStatus Status)
 public record PromotionDto(
     int Id, int EmployeeId, string EmployeeName, string AvatarColor, string CurrentDesignation,
     string ProposedDesignation, decimal? CurrentSalary, decimal? ProposedSalary, string Justification,
-    PromotionStage Stage, string? DecisionNote, string? RecommendedByName,
+    PromotionStage Stage, PromotionRecommendationType RecommendationType, string? DecisionNote, string? RecommendedByName,
     DateTime? ValidatedAt, DateTime? ApprovedAt, DateTime? CompletedAt, DateTime CreatedAt);
 public record CreatePromotionRequest(
     [Required] int EmployeeId,
     [Required, MaxLength(120)] string ProposedDesignation,
     decimal? ProposedSalary,
-    [MaxLength(2000)] string? Justification);
+    [MaxLength(2000)] string? Justification,
+    PromotionRecommendationType RecommendationType = PromotionRecommendationType.Promotion);
 public record PromotionDecisionRequest([MaxLength(2000)] string? Note);
 
 // ---- Learning & development ----

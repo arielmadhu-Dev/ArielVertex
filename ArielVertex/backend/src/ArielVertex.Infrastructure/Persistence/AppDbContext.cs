@@ -34,6 +34,7 @@ public class AppDbContext : DbContext
     public DbSet<Bill> Bills => Set<Bill>();
     public DbSet<BillSetting> BillSettings => Set<BillSetting>();
     public DbSet<Pip> Pips => Set<Pip>();
+    public DbSet<PettyCashEntry> PettyCashEntries => Set<PettyCashEntry>();
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
     public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
     public DbSet<MeetingMinute> MeetingMinutes => Set<MeetingMinute>();
@@ -213,6 +214,16 @@ public class AppDbContext : DbContext
             e.Property(x => x.Amount).HasPrecision(12, 2);
             e.HasOne(x => x.RaisedBy).WithMany().HasForeignKey(x => x.RaisedById).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Approver).WithMany().HasForeignKey(x => x.ApproverId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<PettyCashEntry>(e =>
+        {
+            e.HasIndex(x => x.Date);
+            e.Property(x => x.OpeningBalance).HasPrecision(12, 2);
+            e.Property(x => x.Credit).HasPrecision(12, 2);
+            e.Property(x => x.Debit).HasPrecision(12, 2);
+            e.Property(x => x.Balance).HasPrecision(12, 2);
+            e.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedById).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<Bill>(e =>

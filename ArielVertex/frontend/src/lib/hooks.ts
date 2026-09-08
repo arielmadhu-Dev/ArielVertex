@@ -9,6 +9,7 @@ interface Enums {
   expenseCategories: EnumOption[]; expenseStatuses: EnumOption[]
   cycleStatuses: EnumOption[]; appraisalStages: EnumOption[]; goalStatuses: EnumOption[]
   promotionStages: EnumOption[]; trainingStatuses: EnumOption[]; goalCategories: EnumOption[]
+  pettyCashStatuses: EnumOption[]
 }
 
 export function useEnums() {

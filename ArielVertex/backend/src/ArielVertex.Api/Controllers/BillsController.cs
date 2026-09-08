@@ -100,13 +100,14 @@ public class BillsController : ControllerBase
             DueDate = req.DueDate,
             PaymentMethod = req.PaymentMethod?.Trim() ?? "",
             InvoiceNumber = req.InvoiceNumber?.Trim(),
-            Status = BillStatus.Submitted,
-            ApprovalRequired = req.ApprovalRequired || setting.ApprovalRequiredByDefault,
+            Status = req.PaidDate is not null ? BillStatus.Paid : BillStatus.Submitted,
+            ApprovalRequired = req.PaidDate is null && (req.ApprovalRequired || setting.ApprovalRequiredByDefault),
+            PaidAt = req.PaidDate,
             RaisedById = _me.Id
         };
         _db.Bills.Add(bill);
         await _db.SaveChangesAsync(ct);
-        await _audit.WriteAsync(AuditAction.BillCreated, "Bill", bill.Id, $"Bill '{bill.Title}' created.", ct);
+        await _audit.WriteAsync(req.PaidDate is not null ? AuditAction.BillPaid : AuditAction.BillCreated, "Bill", bill.Id, req.PaidDate is not null ? $"Bill '{bill.Title}' created and marked as paid." : $"Bill '{bill.Title}' created.", ct);
 
         if (bill.ApprovalRequired)
             await NotifyApproversAsync(bill, setting, ct);

@@ -48,8 +48,10 @@ public static class Permissions
     public const string BillsConfigure      = "bills.configure";
     public const string PipView             = "pip.view";
     public const string PipManage           = "pip.manage";
-    public const string ConfigManage        = "config.manage";     // admin portal configuration
-    public const string MinutesManage       = "minutes.manage";    // capture notes → minutes → send (PC + HR)
+    public const string ConfigManage        = "config.manage";
+    public const string PettyCashManage     = "pettyCash.manage";
+    public const string PettyCashViewAll    = "pettyCash.view.all";
+    public const string MinutesManage       = "minutes.manage";
 
     // ---- Performance management (ported from PMS) ----
     public const string CyclesManage        = "cycles.manage";        // HR create/activate/close appraisal cycles
@@ -74,7 +76,7 @@ public static class Permissions
         RolesManage, SyncRun, AuditView, AdminSettings,
         ExpensesManage, ExpensesApprove, ExpensesViewAll, ExpensesConfigure,
         BillsManage, BillsApprove, BillsViewAll, BillsConfigure,
-        PipView, PipManage, ConfigManage, MinutesManage,
+        PipView, PipManage, ConfigManage, PettyCashViewAll, MinutesManage,
         CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
         PromotionsRecommend, PromotionsApprove, PromotionsManage, LearningManage, AnalyticsView
     };
@@ -99,6 +101,7 @@ public static class Permissions
         {
             ProjectsViewAll, ProjectsView, PerformanceViewAll, FeedbackViewAll,
             ResourcesViewAll, ReportsView, AuditView, ExpensesViewAll, BillsViewAll, PipView,
+            PettyCashViewAll,
             ReviewsRequest, FeedbackSubmit,
             // Leadership scope over the ported performance modules.
             AppraisalsRelease, PromotionsApprove, GoalsViewAll, AnalyticsView
@@ -116,6 +119,7 @@ public static class Permissions
             ProjectsViewAll, ProjectsView, EmployeesManage, ReviewsRequest,
             FeedbackSubmit, FeedbackApprove, FeedbackViewAll, PerformanceViewAll, PerformancePublish,
             ResourcesManage, ResourcesViewAll, ReportsView, ExpensesViewAll, BillsViewAll, PipView, PipManage,
+            PettyCashManage, PettyCashViewAll,
             MinutesManage,StatusSubmit,
             // HR owns the performance-management lifecycle.
             CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
@@ -141,7 +145,7 @@ public static class Permissions
             DocumentsDelete, CallsManage, StatusSubmit, StatusViewAll,
             ReviewsRequest, ReviewsSchedule, ReviewsSubmit,
             FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage,
-            // Managers evaluate appraisals, assign goals, recommend promotions, assign training for their reports.
+                        // Managers evaluate appraisals, assign goals, recommend promotions, assign training for their reports.
             AppraisalsManage, GoalsAssign, PromotionsRecommend, LearningManage
         },
 

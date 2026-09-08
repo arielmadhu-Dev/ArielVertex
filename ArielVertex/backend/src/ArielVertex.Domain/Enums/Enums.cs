@@ -78,6 +78,9 @@ public enum GoalStatus { NotStarted = 0, InProgress = 1, Completed = 2, Cancelle
 /// <summary>Promotion &amp; increment approval chain: Manager → HR → Leadership → Complete.</summary>
 public enum PromotionStage { ManagerRecommended = 0, HrValidated = 1, LeadershipApproved = 2, Completed = 3, Rejected = 4 }
 
+/// <summary>Type of recommendation: title-only promotion, salary hike, or both.</summary>
+public enum PromotionRecommendationType { Promotion = 0, Hike = 1, Both = 2 }
+
 /// <summary>Training recommendation lifecycle.</summary>
 public enum TrainingStatus { Recommended = 0, InProgress = 1, Completed = 2 }
 
@@ -137,6 +140,9 @@ public enum BillStatus
 public enum PipStatus { Open = 0, InProgress = 1, Completed = 2, Closed = 3 }
 
 public enum PipOutcome { Pending = 0, Improved = 1, NotImproved = 2 }
+
+/// <summary>Petty cash entry status.</summary>
+public enum PettyCashEntryStatus { Pending = 0, Approved = 1, Rejected = 2 }
 
 /// <summary>
 /// Meeting-minutes lifecycle: notes captured → minutes auto-generated & shown for preview →

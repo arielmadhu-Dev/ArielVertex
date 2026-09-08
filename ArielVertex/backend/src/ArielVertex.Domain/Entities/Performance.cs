@@ -82,6 +82,7 @@ public class Promotion : BaseEntity
     public string Justification { get; set; } = string.Empty;
 
     public PromotionStage Stage { get; set; } = PromotionStage.ManagerRecommended;
+    public PromotionRecommendationType RecommendationType { get; set; } = PromotionRecommendationType.Promotion;
     public string? DecisionNote { get; set; }
 
     public int? RecommendedById { get; set; }

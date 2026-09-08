@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, FolderKanban, ClipboardCheck, MessageSquareQuote, LineChart,
   UsersRound, UserPlus, GaugeCircle, FileBarChart, ShieldCheck, CalendarClock, Gauge, Wallet,
-  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart, Receipt, LucideIcon,
+  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart, Receipt, Banknote, LucideIcon,
 } from 'lucide-react'
 import type { CurrentUser } from '../lib/types'
 
@@ -20,6 +20,7 @@ export const P = {
   BillsViewAll: 'bills.view.all', BillsConfigure: 'bills.configure',
   PipView: 'pip.view', PipManage: 'pip.manage', ConfigManage: 'config.manage',
   MinutesManage: 'minutes.manage',
+  PettyCashManage: 'pettyCash.manage', PettyCashViewAll: 'pettyCash.view.all',
   // Performance management (ported)
   CyclesManage: 'cycles.manage', AppraisalsManage: 'appraisals.manage', AppraisalsRelease: 'appraisals.release',
   GoalsAssign: 'goals.assign', GoalsViewAll: 'goals.view.all',
@@ -60,7 +61,7 @@ export const navGroups: NavGroup[] = [
       { to: '/appraisals', label: 'Appraisals', icon: Award, show: () => true },
       { to: '/goals', label: 'Goals & KRAs', icon: Target, show: () => true },
       { to: '/cycles', label: 'Appraisal Cycles', icon: CalendarRange, show: (u) => any(u, P.CyclesManage) },
-      { to: '/promotions', label: 'Promotions', icon: TrendingUp, show: (u) => any(u, P.PromotionsRecommend, P.PromotionsApprove, P.PromotionsManage) },
+      { to: '/promotions', label: 'Promotion & Hike', icon: TrendingUp, show: (u) => any(u, P.PromotionsRecommend, P.PromotionsApprove, P.PromotionsManage) },
       { to: '/learning', label: 'Learning', icon: GraduationCap, show: () => true },
       { to: '/analytics', label: 'Talent Analytics', icon: PieChart, show: (u) => any(u, P.AnalyticsView) },
     ],
@@ -72,6 +73,7 @@ export const navGroups: NavGroup[] = [
       { to: '/hiring', label: 'Hiring Requests', icon: UserPlus, feature: 'hiring', show: (u) => any(u, P.ResourcesRequest, P.ResourcesManage) },
       { to: '/employees', label: 'Employees', icon: UsersRound, show: (u) => any(u, P.EmployeesManage, P.ProjectsViewAll) },
       { to: '/expenses', label: 'Expenses', icon: Wallet, feature: 'expenses', show: (u) => any(u, P.ExpensesManage, P.ExpensesApprove, P.ExpensesViewAll) },
+      { to: '/petty-cash', label: 'Petty Cash', icon: Banknote, feature: 'pettyCash', show: (u) => any(u, P.PettyCashManage, P.PettyCashViewAll) },
       { to: '/bills', label: 'Bills', icon: Receipt, feature: 'bills', show: (u) => any(u, P.BillsManage, P.BillsApprove, P.BillsViewAll) },
       { to: '/reports', label: 'Reports', icon: FileBarChart, feature: 'reports', show: (u) => any(u, P.ReportsView) },
     ],

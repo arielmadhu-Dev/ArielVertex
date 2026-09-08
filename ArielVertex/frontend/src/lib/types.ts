@@ -126,10 +126,11 @@ export interface Goal {
   cycleId?: number; assignedByName?: string; createdAt: string
 }
 export type PromotionStage = 'ManagerRecommended' | 'HrValidated' | 'LeadershipApproved' | 'Completed' | 'Rejected'
+export type RecommendationType = 'Promotion' | 'Hike' | 'Both'
 export interface Promotion {
   id: number; employeeId: number; employeeName: string; avatarColor: string
   currentDesignation: string; proposedDesignation: string; currentSalary?: number; proposedSalary?: number
-  justification: string; stage: PromotionStage; decisionNote?: string; recommendedByName?: string
+  justification: string; stage: PromotionStage; recommendationType: RecommendationType; decisionNote?: string; recommendedByName?: string
   validatedAt?: string; approvedAt?: string; completedAt?: string; createdAt: string
 }
 export interface Training {
@@ -151,6 +152,14 @@ export interface ExpenseSummary { total: number; pendingApproval: number; paid: 
 export interface ExpenseSettings {
   approvalRequiredByDefault: boolean; approverRoles: string[]
   dailySummaryRecipients: string; weeklySummaryRecipients: string; teamsWebhookUrl?: string
+}
+
+export type PettyCashEntryStatus = 'Pending' | 'Approved' | 'Rejected'
+export interface PettyCashItem {
+  id: number; date: string; particulars: string
+  openingBalance: number; credit: number; debit: number; balance: number
+  notes?: string; createdByName: string; createdAt: string
+  status: PettyCashEntryStatus; canManage: boolean
 }
 
 export interface BillItem {

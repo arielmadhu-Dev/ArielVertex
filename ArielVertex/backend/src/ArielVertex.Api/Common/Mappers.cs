@@ -123,6 +123,11 @@ public static class Mappers
             e.Status, Labels.ExpenseStatus(e.Status), e.ApprovalRequired, e.RaisedById, e.RaisedBy?.Name ?? "",
             e.Approver?.Name, e.DecidedAt, e.DecisionNote, e.PaidAt, e.CreatedAt, canApprove, canManage);
 
+    // ---- Petty Cash ----
+    public static PettyCashDto ToDto(this PettyCashEntry e, bool canManage) =>
+        new(e.Id, e.Date, e.Particulars, e.OpeningBalance, e.Credit, e.Debit, e.Balance,
+            e.Notes, e.CreatedBy?.Name ?? "", e.CreatedAt, e.Status);
+
     // ---- Performance management (appraisal cycles, appraisals, goals, promotions, training) ----
     public static CycleDto ToDto(this AppraisalCycle c) =>
         new(c.Id, c.Name, c.StartDate, c.EndDate, c.Status, c.Appraisals?.Count ?? 0, c.CreatedAt);
@@ -138,7 +143,7 @@ public static class Mappers
 
     public static PromotionDto ToDto(this Promotion p) =>
         new(p.Id, p.EmployeeId, p.Employee?.Name ?? "", p.Employee?.AvatarColor ?? "#1E7FD4", p.CurrentDesignation,
-            p.ProposedDesignation, p.CurrentSalary, p.ProposedSalary, p.Justification, p.Stage, p.DecisionNote,
+            p.ProposedDesignation, p.CurrentSalary, p.ProposedSalary, p.Justification, p.Stage, p.RecommendationType, p.DecisionNote,
             p.RecommendedBy?.Name, p.ValidatedAt, p.ApprovedAt, p.CompletedAt, p.CreatedAt);
 
     public static TrainingDto ToDto(this TrainingRecommendation t) =>

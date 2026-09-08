@@ -34,10 +34,10 @@ export default function Bills() {
   })
   const invalidate = () => qc.invalidateQueries({ queryKey: ['bills'] })
 
-  const [form, setForm] = useState({ title: '', category: '', amount: '', vendor: '', billDate: new Date().toISOString().slice(0, 10), dueDate: '', paymentMethod: 'UPI', invoiceNumber: '', approvalRequired: true, description: '' })
+  const [form, setForm] = useState({ title: '', category: '', amount: '', vendor: '', billDate: new Date().toISOString().slice(0, 10), dueDate: '', paymentMethod: 'UPI', invoiceNumber: '', approvalRequired: true, description: '', paidDate: '' })
   const create = useMutation({
-    mutationFn: () => api.post('/bills', { ...form, amount: Number(form.amount), billDate: form.billDate || undefined, dueDate: form.dueDate || undefined }),
-    onSuccess: () => { push('Bill created'); setOpen(false); invalidate(); setForm({ title: '', category: '', amount: '', vendor: '', billDate: new Date().toISOString().slice(0, 10), dueDate: '', paymentMethod: 'UPI', invoiceNumber: '', approvalRequired: true, description: '' }) },
+    mutationFn: () => api.post('/bills', { ...form, amount: Number(form.amount), billDate: form.billDate || undefined, dueDate: form.dueDate || undefined, approvalRequired: form.paidDate ? false : form.approvalRequired, paidDate: form.paidDate || undefined }),
+    onSuccess: () => { push('Bill created'); setOpen(false); invalidate(); setForm({ title: '', category: '', amount: '', vendor: '', billDate: new Date().toISOString().slice(0, 10), dueDate: '', paymentMethod: 'UPI', invoiceNumber: '', approvalRequired: true, description: '', paidDate: '' }) },
     onError: (e) => push(apiError(e), 'error'),
   })
   const act = useMutation({
@@ -106,10 +106,10 @@ export default function Bills() {
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-[var(--line)]">
               <th className="px-5 py-3">Bill</th><th className="px-5 py-3">Category</th><th className="px-5 py-3 text-right">Amount</th>
-              <th className="px-5 py-3">Due Date</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Invoice</th><th className="px-5 py-3">Raised by</th><th className="px-5 py-3 text-right">Actions</th>
+              <th className="px-5 py-3">Due Date</th><th className="px-5 py-3">Paid Date</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Invoice</th><th className="px-5 py-3">Raised by</th><th className="px-5 py-3 text-right">Actions</th>
             </tr></thead>
             <tbody>
-              {isLoading ? [...Array(4)].map((_, i) => <tr key={i}><td colSpan={8} className="px-5 py-2"><Skeleton className="h-9" /></td></tr>)
+              {isLoading ? [...Array(4)].map((_, i) => <tr key={i}><td colSpan={9} className="px-5 py-2"><Skeleton className="h-9" /></td></tr>)
                 : data?.items.length ? data.items.map((b) => {
                   const isOverdue = b.status === 'Overdue'
                   const isDueSoon = !isOverdue && b.daysUntilDue >= 0 && b.daysUntilDue <= 3
@@ -130,6 +130,7 @@ export default function Bills() {
                           </span>
                         ) : <span className="text-xs text-slate-400">—</span>}
                       </td>
+                      <td className="px-5 py-3"><span className="text-xs text-slate-500">{b.paidAt ? fmtDate(b.paidAt) : '—'}</span></td>
                       <td className="px-5 py-3"><StatusPill value={b.status} /></td>
                       <td className="px-5 py-3">
                         {b.hasInvoiceFile
@@ -151,7 +152,7 @@ export default function Bills() {
                       </td>
                     </tr>
                   )
-                }) : <tr><td colSpan={8}><EmptyState icon={<Receipt className="h-6 w-6" />} title="No bills yet" hint="Add a vendor bill to get started." /></td></tr>}
+                }) : <tr><td colSpan={9}><EmptyState icon={<Receipt className="h-6 w-6" />} title="No bills yet" hint="Add a vendor bill to get started." /></td></tr>}
             </tbody>
           </table>
         </div>
@@ -178,9 +179,10 @@ export default function Bills() {
             <Field label="Amount (₹)" required><Input type="number" min={0} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></Field>
             <Field label="Vendor / supplier"><Input value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} /></Field>
             <Field label="Invoice number"><Input value={form.invoiceNumber} onChange={(e) => setForm({ ...form, invoiceNumber: e.target.value })} /></Field>
-            <Field label="Bill date"><Input type="date" value={form.billDate} onChange={(e) => setForm({ ...form, billDate: e.target.value })} /></Field>
-            <Field label="Due date"><Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></Field>
-            <Field label="Payment method"><Input value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} placeholder="UPI / Card / Bank" /></Field>
+             <Field label="Bill date"><Input type="date" value={form.billDate} onChange={(e) => setForm({ ...form, billDate: e.target.value })} /></Field>
+             <Field label="Due date"><Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></Field>
+             <Field label="Paid date"><Input type="date" value={form.paidDate} onChange={(e) => setForm({ ...form, paidDate: e.target.value })} /></Field>
+             <Field label="Payment method"><Input value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} placeholder="UPI / Card / Bank" /></Field>
             <div className="sm:col-span-2"><Field label="Notes"><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field></div>
             <div className="sm:col-span-2"><label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.approvalRequired} onChange={(e) => setForm({ ...form, approvalRequired: e.target.checked })} /> Requires approval before payment</label></div>
           </div>

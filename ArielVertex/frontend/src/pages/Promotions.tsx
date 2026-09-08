@@ -4,7 +4,7 @@ import { TrendingUp, Plus, Check, X } from 'lucide-react'
 import { api, apiError } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { useEmployees } from '../lib/hooks'
-import type { Promotion } from '../lib/types'
+import type { Promotion, RecommendationType } from '../lib/types'
 import { PageHeader } from '../components/PageHeader'
 import { Card, Badge, StatusPill, Avatar, Button, EmptyState } from '../ui/primitives'
 import { Modal } from '../ui/Modal'
@@ -13,6 +13,11 @@ import { useToast } from '../ui/Toast'
 import { P } from '../components/nav'
 
 const STAGES = ['ManagerRecommended', 'HrValidated', 'LeadershipApproved', 'Completed']
+const REC_TYPES: { value: string; label: string }[] = [
+  { value: 'Promotion', label: 'Promotion' },
+  { value: 'Hike', label: 'Hike' },
+  { value: 'Both', label: 'Both (Promotion + Hike)' },
+]
 const nice = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1 $2')
 
 export default function Promotions() {
@@ -36,7 +41,7 @@ export default function Promotions() {
 
   return (
     <div>
-      <PageHeader title="Promotions & Increments" subtitle="Manager recommendation → HR validation → leadership approval → completion" icon={<TrendingUp className="h-5 w-5" />}
+      <PageHeader title="Promotion & Hike" subtitle="Manager recommendation → HR validation → leadership approval → completion" icon={<TrendingUp className="h-5 w-5" />}
         actions={canRecommend ? <Button icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)}>Recommend</Button> : undefined} />
 
       {data?.length ? (
@@ -52,6 +57,7 @@ export default function Promotions() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-bold">{p.employeeName}</p>
                       <StatusPill value={p.stage} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-300 px-2 py-0.5 rounded-full">{p.recommendationType}</span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">{p.currentDesignation} → <span className="font-semibold text-slate-700 dark:text-slate-200">{p.proposedDesignation}</span>{p.recommendedByName ? ` · by ${p.recommendedByName}` : ''}</p>
                     {p.justification && <p className="text-sm mt-1 text-slate-600 dark:text-slate-300">{p.justification}</p>}
@@ -86,11 +92,12 @@ export default function Promotions() {
 }
 
 function RecommendModal({ onClose, onDone, employees, push }: any) {
-  const [form, setForm] = useState({ employeeId: 0, proposedDesignation: '', proposedSalary: '', justification: '' })
+  const [form, setForm] = useState({ employeeId: 0, proposedDesignation: '', proposedSalary: '', justification: '', recommendationType: 'Promotion' as RecommendationType })
   const create = useMutation({
     mutationFn: () => api.post('/promotions', {
       employeeId: form.employeeId, proposedDesignation: form.proposedDesignation,
       proposedSalary: form.proposedSalary ? Number(form.proposedSalary) : null, justification: form.justification,
+      recommendationType: form.recommendationType,
     }),
     onSuccess: () => { push('Promotion recommended'); onDone() },
     onError: (e: any) => push(apiError(e), 'error'),
@@ -101,6 +108,11 @@ function RecommendModal({ onClose, onDone, employees, push }: any) {
       <div className="grid sm:grid-cols-2 gap-4">
         <Field label="Employee" required><Select value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: Number(e.target.value) })}><option value={0}>Select…</option>{employees.map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}</Select></Field>
         <Field label="Proposed designation" required><Input value={form.proposedDesignation} onChange={(e) => setForm({ ...form, proposedDesignation: e.target.value })} placeholder="Senior Software Engineer" /></Field>
+        <Field label="Type" required>
+          <Select value={form.recommendationType} onChange={(e) => setForm({ ...form, recommendationType: e.target.value as RecommendationType })}>
+            {REC_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </Select>
+        </Field>
         <Field label="Proposed salary (optional)"><Input type="number" value={form.proposedSalary} onChange={(e) => setForm({ ...form, proposedSalary: e.target.value })} /></Field>
         <div className="sm:col-span-2"><Field label="Justification"><Textarea value={form.justification} onChange={(e) => setForm({ ...form, justification: e.target.value })} /></Field></div>
       </div>
