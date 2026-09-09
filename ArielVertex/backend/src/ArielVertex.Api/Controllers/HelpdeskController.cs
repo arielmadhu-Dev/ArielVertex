@@ -20,14 +20,15 @@ public class HelpdeskController : ApiControllerBase
 
     private readonly AppDbContext _db;
     private readonly ICurrentUser _me;
+    private readonly INotificationService _notify;
     private bool CanManage => _me.Has(Permissions.HelpdeskManage);
 
     /// <summary>CEO, HR Director and System Admin see every ticket; everyone else only their own scope.</summary>
     private bool CanViewAll =>
         CanManage || _me.Role == PortalRole.CeoAdmin || _me.Role == PortalRole.HrDirector;
 
-    public HelpdeskController(AppDbContext db, ICurrentUser me)
-    { _db = db; _me = me; }
+    public HelpdeskController(AppDbContext db, ICurrentUser me, INotificationService notify)
+    { _db = db; _me = me; _notify = notify; }
 
     [HttpGet]
     public async Task<IActionResult> List()
@@ -71,6 +72,23 @@ public class HelpdeskController : ApiControllerBase
 
         _db.HelpdeskTickets.Add(ticket);
         await _db.SaveChangesAsync();
+
+        if (ticket.AssignedToId.HasValue && ticket.AssignedToId != _me.Id)
+        {
+            await _notify.NotifyAsync(ticket.AssignedToId.Value, NotificationType.General,
+                "Helpdesk ticket assigned",
+                $"Ticket #{ticket.Id}: {ticket.Subject}",
+                "/helpdesk");
+        }
+
+        if (ticket.RaisedById != _me.Id)
+        {
+            await _notify.NotifyAsync(ticket.RaisedById, NotificationType.General,
+                "Helpdesk ticket created",
+                $"Your ticket #{ticket.Id}: {ticket.Subject} has been raised and assigned.",
+                "/helpdesk");
+        }
+
         return Ok((await _db.HelpdeskTickets.FindAsync(ticket.Id)).ToDto(CanManage));
     }
 
@@ -167,6 +185,9 @@ public class HelpdeskController : ApiControllerBase
         var isAssignee = t.AssignedToId == _me.Id;
         if (!CanManage && !isAssignee) return Denied("Only System Admin or the assigned support person can update tickets.");
 
+        var previousAssigneeId = t.AssignedToId;
+        var previousStatus = t.Status;
+
         if (req.Status.HasValue) t.Status = req.Status.Value;
         if (req.Priority.HasValue)
         {
@@ -188,6 +209,23 @@ public class HelpdeskController : ApiControllerBase
             }
         }
         await _db.SaveChangesAsync();
+
+        if (req.AssignedToId.HasValue && req.AssignedToId.Value != previousAssigneeId && req.AssignedToId.Value != _me.Id)
+        {
+            await _notify.NotifyAsync(req.AssignedToId.Value, NotificationType.General,
+                "Helpdesk ticket reassigned to you",
+                $"Ticket #{t.Id}: {t.Subject}",
+                "/helpdesk");
+        }
+
+        if (t.Status == HelpdeskTicketStatus.Resolved && previousStatus != HelpdeskTicketStatus.Resolved && t.RaisedById != _me.Id)
+        {
+            await _notify.NotifyAsync(t.RaisedById, NotificationType.General,
+                "Helpdesk ticket resolved",
+                $"Ticket #{t.Id}: {t.Subject} has been resolved.",
+                "/helpdesk");
+        }
+
         return Ok((await _db.HelpdeskTickets.FindAsync(id)).ToDto(CanManage));
     }
 }
