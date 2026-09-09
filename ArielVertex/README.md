@@ -60,7 +60,7 @@ docker compose up -d --build
 | `shepherd@arielsoftwares.in` | Shepherd — Project Manager | Delivery dashboard |
 | `maria@arielsoftwares.in` | Maria — Project Coordinator | Delivery dashboard |
 | `arveen@arielsoftwares.in` | Arveen — Business Director | Business dashboard |
-| `nikhil@arielsoftwares.in` | Nikhil — Technical Lead | Employee dashboard |
+| `nikhil@arielsoftwares.in` | Nikhil — Team Lead | Employee dashboard |
 | `rahul@arielsoftwares.in` | Rahul — Developer | Employee dashboard (has published performance) |
 | `rajat@arielsoftwares.in` | Rajat — System Admin | Admin dashboard |
 | `admin@arielsoftwares.in` | Super Admin | Admin dashboard |

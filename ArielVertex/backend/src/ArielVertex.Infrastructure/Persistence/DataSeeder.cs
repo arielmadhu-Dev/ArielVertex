@@ -64,7 +64,7 @@ public static class DataSeeder
         var arun = Mk("Arun Mehta", "arun", PortalRole.BusinessManager, "Business Manager", dBiz);
         var sid = Mk("Sid Kapoor", "sid", PortalRole.BusinessPerson, "Business Analyst", dBiz);
         var komal = Mk("Komal Jain", "komal", PortalRole.BusinessPerson, "Business Analyst", dBiz);
-        var nikhil = Mk("Nikhil Reddy", "nikhil", PortalRole.TechnicalLead, "Technical Lead", dEng, "Architecture, Code Review, .NET, React");
+        var nikhil = Mk("Nikhil Reddy", "nikhil", PortalRole.TechnicalLead, "Team Lead", dEng, "Architecture, Code Review, .NET, React");
         var amandeep = Mk("Amandeep Kaur", "amandeep", PortalRole.Frontdesk, "Front Desk Executive", dAdm);
         var rajat = Mk("Rajat Malhotra", "rajat", PortalRole.SystemAdmin, "System Administrator", dAdm);
         var akshay = Mk("Akshay Gupta", "akshay", PortalRole.Accountant, "Accountant", dAdm);

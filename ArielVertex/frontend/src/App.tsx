@@ -32,6 +32,8 @@ import Goals from './pages/Goals'
 import Promotions from './pages/Promotions'
 import Learning from './pages/Learning'
 import Analytics from './pages/Analytics'
+import Helpdesk from './pages/Helpdesk'
+import Assets from './pages/Assets'
 
 function Splash() {
   return (
@@ -77,6 +79,8 @@ export default function App() {
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/petty-cash" element={<PettyCash />} />
           <Route path="/bills" element={<Bills />} />
+          <Route path="/helpdesk" element={<Helpdesk />} />
+          <Route path="/assets" element={<Assets />} />
           <Route path="/pip" element={<PipPage />} />
           <Route path="/meetings" element={<Meetings />} />
           <Route path="/configuration" element={<Configuration />} />

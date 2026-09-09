@@ -2,7 +2,7 @@ using ArielVertex.Domain.Common;
 
 namespace ArielVertex.Domain.Entities;
 
-/// <summary>Technical review outcome captured by a Technical Lead (spec 6.7 / 5).</summary>
+/// <summary>Technical review outcome captured by a Team Lead (spec 6.7 / 5).</summary>
 public class CodeReview : BaseEntity
 {
     public int ReviewRequestId { get; set; }

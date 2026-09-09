@@ -180,3 +180,39 @@ export interface BillSettings {
 export interface ExtractedBillData {
   vendor?: string; amount?: number; dueDate?: string; billDate?: string; category?: string; invoiceNumber?: string
 }
+
+export type HelpdeskTicketStatus = 'Open' | 'InProgress' | 'Resolved' | 'Closed'
+export type HelpdeskTicketPriority = 'Low' | 'Medium' | 'High' | 'Critical'
+export type HelpdeskTicketCategory = 'General' | 'Technical' | 'Access' | 'Bug' | 'Feature' | 'Other'
+
+export interface HelpdeskTicket {
+  id: number; subject: string; description: string
+  category: HelpdeskTicketCategory; priority: HelpdeskTicketPriority; status: HelpdeskTicketStatus
+  raisedById: number; raisedByName: string; assignedToId?: number; assignedToName?: string
+  resolution?: string; resolvedAt?: string; closedAt?: string; createdAt: string
+  canManage: boolean
+}
+
+export type AssetCategory = 'Laptop' | 'Desktop' | 'Monitor' | 'Keyboard' | 'Mouse' | 'Printer' | 'NetworkDevice' | 'Software' | 'Furniture' | 'Other'
+export type AssetCondition = 'New' | 'Good' | 'Fair' | 'Poor' | 'Broken'
+export type AssetStatus = 'Available' | 'Assigned' | 'InRepair' | 'Retired' | 'PendingAssignment'
+export type AssetRequestType = 'New' | 'Repair' | 'Replacement' | 'Assignment'
+export type AssetRequestStatus = 'Pending' | 'Approved' | 'Rejected' | 'Completed' | 'Cancelled' | 'PendingAcceptance'
+
+export interface Asset {
+  id: number; name: string; description: string; category: AssetCategory; categoryLabel: string
+  serialNumber?: string; purchaseDate?: string; purchasePrice?: number
+  condition: AssetCondition; conditionLabel: string; status: AssetStatus; statusLabel: string
+  assignedToId?: number; assignedToName?: string; assignedAt?: string; returnedAt?: string
+  createdAt: string; canManage: boolean
+}
+
+export interface AssetRequest {
+  id: number; subject: string; description: string; requestType: AssetRequestType; requestTypeLabel: string
+  assetId?: number; assetName?: string; quantity: number; estimatedCost?: number; vendor?: string
+  status: AssetRequestStatus; statusLabel: string
+  raisedById: number; raisedByName: string
+  targetUserId?: number; targetUserName?: string
+  approverName?: string; decidedAt?: string; decisionNote?: string
+  createdAt: string; canApprove: boolean
+}

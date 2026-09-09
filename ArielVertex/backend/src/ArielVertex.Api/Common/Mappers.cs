@@ -128,6 +128,25 @@ public static class Mappers
         new(e.Id, e.Date, e.Particulars, e.OpeningBalance, e.Credit, e.Debit, e.Balance,
             e.Notes, e.CreatedBy?.Name ?? "", e.CreatedAt, e.Status);
 
+    // ---- Helpdesk ----
+    public static HelpdeskTicketDto ToDto(this HelpdeskTicket t, bool canManage) =>
+        new(t.Id, t.Subject, t.Description, t.Category, t.Priority, t.Status,
+            t.RaisedById, t.RaisedBy?.Name ?? "", t.AssignedToId, t.AssignedTo?.Name,
+            t.Resolution, t.ResolvedAt, t.ClosedAt, t.CreatedAt);
+
+    // ---- Assets ----
+    public static AssetDto ToDto(this Asset a, bool canManage) =>
+        new(a.Id, a.Name, a.Description, a.Category, Labels.AssetCategory(a.Category),
+            a.SerialNumber, a.PurchaseDate, a.PurchasePrice, a.Condition, Labels.AssetConditionLabel(a.Condition),
+            a.Status, Labels.AssetStatusLabel(a.Status), a.AssignedToId, a.AssignedTo?.Name, a.AssignedAt, a.ReturnedAt, a.CreatedAt);
+
+    public static AssetRequestDto ToDto(this AssetRequest r, bool canApprove) =>
+        new(r.Id, r.Subject, r.Description, r.RequestType, Labels.AssetRequestTypeLabel(r.RequestType),
+            r.AssetId, r.Asset?.Name, r.Quantity, r.EstimatedCost, r.Vendor,
+            r.Status, Labels.AssetRequestStatusLabel(r.Status),
+            r.RaisedById, r.RaisedBy?.Name ?? "", r.TargetUserId, r.TargetUser?.Name,
+            r.Approver?.Name, r.DecidedAt, r.DecisionNote, r.CreatedAt);
+
     // ---- Performance management (appraisal cycles, appraisals, goals, promotions, training) ----
     public static CycleDto ToDto(this AppraisalCycle c) =>
         new(c.Id, c.Name, c.StartDate, c.EndDate, c.Status, c.Appraisals?.Count ?? 0, c.CreatedAt);

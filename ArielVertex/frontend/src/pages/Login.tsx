@@ -17,7 +17,7 @@ const demoUsers = [
   { name: 'Shepherd — Project Manager', email: 'shepherd@arielsoftwares.in' },
   { name: 'Maria — Project Coordinator', email: 'maria@arielsoftwares.in' },
   { name: 'Arveen — Business Director', email: 'arveen@arielsoftwares.in' },
-  { name: 'Nikhil — Technical Lead', email: 'nikhil@arielsoftwares.in' },
+  { name: 'Nikhil — Team Lead', email: 'nikhil@arielsoftwares.in' },
   { name: 'Rahul — Developer', email: 'rahul@arielsoftwares.in' },
   { name: 'Rajat — System Admin', email: 'rajat@arielsoftwares.in' },
 ]

@@ -124,6 +124,25 @@ public enum ExpenseCategory
     Maintenance = 4, Software = 5, Courier = 6, Other = 7
 }
 
+/// <summary>Asset category types.</summary>
+public enum AssetCategory
+{
+    Laptop = 0, Desktop = 1, Monitor = 2, Keyboard = 3, Mouse = 4,
+    Printer = 5, NetworkDevice = 6, Software = 7, Furniture = 8, Other = 9
+}
+
+/// <summary>Physical condition of an asset.</summary>
+public enum AssetCondition { New = 0, Good = 1, Fair = 2, Poor = 3, Broken = 4 }
+
+/// <summary>Current status of an asset.</summary>
+public enum AssetStatus { Available = 0, Assigned = 1, InRepair = 2, Retired = 3, PendingAssignment = 4 }
+
+/// <summary>Type of asset request.</summary>
+public enum AssetRequestType { New = 0, Repair = 1, Replacement = 2, Assignment = 3 }
+
+/// <summary>Asset request approval lifecycle.</summary>
+public enum AssetRequestStatus { Pending = 0, Approved = 1, Rejected = 2, Completed = 3, Cancelled = 4, PendingAcceptance = 5 }
+
 /// <summary>Front-desk expense / payment-request lifecycle.</summary>
 public enum ExpenseStatus
 {
@@ -143,6 +162,15 @@ public enum PipOutcome { Pending = 0, Improved = 1, NotImproved = 2 }
 
 /// <summary>Petty cash entry status.</summary>
 public enum PettyCashEntryStatus { Pending = 0, Approved = 1, Rejected = 2 }
+
+/// <summary>Helpdesk ticket status.</summary>
+public enum HelpdeskTicketStatus { Open = 0, InProgress = 1, Resolved = 2, Closed = 3 }
+
+/// <summary>Helpdesk ticket priority.</summary>
+public enum HelpdeskTicketPriority { Low = 0, Medium = 1, High = 2, Critical = 3 }
+
+/// <summary>Helpdesk ticket category.</summary>
+public enum HelpdeskTicketCategory { General = 0, Technical = 1, Access = 2, Bug = 3, Feature = 4, Other = 5 }
 
 /// <summary>
 /// Meeting-minutes lifecycle: notes captured → minutes auto-generated & shown for preview →

@@ -42,6 +42,9 @@ public static class Permissions
     public const string ExpensesApprove     = "expenses.approve";  // HR Director / Accountant
     public const string ExpensesViewAll     = "expenses.view.all";
     public const string ExpensesConfigure   = "expenses.configure";
+    public const string AssetsManage        = "assets.manage";      // System Admin: assign / create / update / retire
+    public const string AssetsApprove       = "assets.approve";     // HR Director: approve / reject requests
+    public const string AssetsRaise         = "assets.raise";       // everyone: raise repair/purchase request
     public const string BillsManage         = "bills.manage";      // Front desk: create / request / pay
     public const string BillsApprove        = "bills.approve";     // HR Director / Accountant
     public const string BillsViewAll        = "bills.view.all";
@@ -52,6 +55,8 @@ public static class Permissions
     public const string PettyCashManage     = "pettyCash.manage";
     public const string PettyCashViewAll    = "pettyCash.view.all";
     public const string MinutesManage       = "minutes.manage";
+    public const string HelpdeskRaise       = "helpdesk.raise";
+    public const string HelpdeskManage      = "helpdesk.manage";
 
     // ---- Performance management (ported from PMS) ----
     public const string CyclesManage        = "cycles.manage";        // HR create/activate/close appraisal cycles
@@ -75,8 +80,10 @@ public static class Permissions
         ResourcesRequest, ResourcesManage, ResourcesViewAll, ReportsView, EmployeesManage,
         RolesManage, SyncRun, AuditView, AdminSettings,
         ExpensesManage, ExpensesApprove, ExpensesViewAll, ExpensesConfigure,
+        AssetsManage, AssetsApprove, AssetsRaise,
         BillsManage, BillsApprove, BillsViewAll, BillsConfigure,
-        PipView, PipManage, ConfigManage, PettyCashViewAll, MinutesManage,
+        PipView, PipManage, ConfigManage, PettyCashManage, PettyCashViewAll, MinutesManage,
+        HelpdeskRaise, HelpdeskManage,
         CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
         PromotionsRecommend, PromotionsApprove, PromotionsManage, LearningManage, AnalyticsView
     };
@@ -101,16 +108,16 @@ public static class Permissions
         {
             ProjectsViewAll, ProjectsView, PerformanceViewAll, FeedbackViewAll,
             ResourcesViewAll, ReportsView, AuditView, ExpensesViewAll, BillsViewAll, PipView,
-            PettyCashViewAll,
+            PettyCashViewAll, HelpdeskRaise, AssetsRaise,
             ReviewsRequest, FeedbackSubmit,
-            // Leadership scope over the ported performance modules.
             AppraisalsRelease, PromotionsApprove, GoalsViewAll, AnalyticsView
         },
 
         PortalRole.SystemAdmin => new[]
         {
             SyncRun, AdminSettings, AuditView, EmployeesManage, ProjectsViewAll, ProjectsView,
-            ExpensesConfigure, ExpensesViewAll, BillsConfigure, BillsViewAll, ConfigManage,StatusSubmit
+            ExpensesConfigure, ExpensesViewAll, BillsConfigure, BillsViewAll, ConfigManage,StatusSubmit,
+            HelpdeskManage, AssetsManage, AssetsRaise
         },
 
         // HR Manager: HR duties + Request Review (request-only) and Add Feedback. No RolesManage.
@@ -119,9 +126,8 @@ public static class Permissions
             ProjectsViewAll, ProjectsView, EmployeesManage, ReviewsRequest,
             FeedbackSubmit, FeedbackApprove, FeedbackViewAll, PerformanceViewAll, PerformancePublish,
             ResourcesManage, ResourcesViewAll, ReportsView, ExpensesViewAll, BillsViewAll, PipView, PipManage,
-            PettyCashManage, PettyCashViewAll,
+            PettyCashManage, PettyCashViewAll, HelpdeskRaise, AssetsRaise,
             MinutesManage,StatusSubmit,
-            // HR owns the performance-management lifecycle.
             CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
             PromotionsManage, LearningManage, AnalyticsView
         },
@@ -129,13 +135,13 @@ public static class Permissions
         // Accountant: approves & sees all expenses (finance owner). No own-performance dashboard.
         PortalRole.Accountant => new[]
         {
-            ProjectsView, ExpensesApprove, ExpensesViewAll, BillsApprove, BillsViewAll,StatusSubmit
+            ProjectsView, ExpensesApprove, ExpensesViewAll, BillsApprove, BillsViewAll, HelpdeskRaise, StatusSubmit, AssetsRaise
         },
 
         // Front desk: raises and manages internal expenses / payment requests. No own-performance dashboard.
         PortalRole.Frontdesk => new[]
         {
-            ProjectsView, ExpensesManage, BillsManage,StatusSubmit
+            ProjectsView, ExpensesManage, BillsManage, HelpdeskRaise, StatusSubmit, AssetsRaise
         },
 
         // Project Manager: assigned project management + Schedule/Request Review, Add Feedback, Submit Status.
@@ -145,7 +151,7 @@ public static class Permissions
             DocumentsDelete, CallsManage, StatusSubmit, StatusViewAll,
             ReviewsRequest, ReviewsSchedule, ReviewsSubmit,
             FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage,
-                        // Managers evaluate appraisals, assign goals, recommend promotions, assign training for their reports.
+            HelpdeskRaise, AssetsRaise,
             AppraisalsManage, GoalsAssign, PromotionsRecommend, LearningManage
         },
 
@@ -156,25 +162,26 @@ public static class Permissions
             DocumentsDelete, CallsManage, StatusSubmit, StatusViewAll,
             ReviewsRequest, ReviewsSchedule, ReviewsSubmit,
             FeedbackSubmit, ResourcesRequest, ReportsView, MinutesManage,
+            HelpdeskRaise, AssetsRaise,
             AppraisalsManage, GoalsAssign, PromotionsRecommend, LearningManage
         },
 
         PortalRole.TechnicalLead => new[]
         {
-            ProjectsView, DocumentsUpload, StatusViewAll, ReviewsSubmit,StatusSubmit
+            ProjectsView, DocumentsUpload, StatusViewAll, ReviewsSubmit, HelpdeskRaise, AssetsRaise, StatusSubmit
         },
 
         PortalRole.HrRecruiter => new[]
         {
-            ProjectsView, StatusSubmit, PerformanceViewOwn, ResourcesRequest, ResourcesManage, ResourcesViewAll
+            ProjectsView, StatusSubmit, PerformanceViewOwn, ResourcesRequest, ResourcesManage, ResourcesViewAll, HelpdeskRaise, AssetsRaise
         },
 
         PortalRole.BusinessDirector or PortalRole.BusinessManager or PortalRole.BusinessPerson => new[]
         {
-            ProjectsView,StatusSubmit
+            ProjectsView, StatusSubmit, PettyCashViewAll, HelpdeskRaise, AssetsRaise
         },
 
         // Employee / QA / Developer
-        _ => new[] { ProjectsView, StatusSubmit, PerformanceViewOwn }
+        _ => new[] { ProjectsView, StatusSubmit, PerformanceViewOwn, HelpdeskRaise, AssetsRaise }
     };
 }

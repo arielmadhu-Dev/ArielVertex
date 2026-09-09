@@ -24,7 +24,7 @@ Section B is a single connected story (the MIB project), so earlier steps set up
 
 | Person | Role | Login email |
 |---|---|---|
-| Nikhil | Technical Lead | `nikhil@arielsoftwares.in` |
+| Nikhil | Team Lead | `nikhil@arielsoftwares.in` |
 | Rahul | Developer | `rahul@arielsoftwares.in` |
 | Priya | Developer | `priya@arielsoftwares.in` |
 | Rajat | System Admin | `rajat@arielsoftwares.in` |

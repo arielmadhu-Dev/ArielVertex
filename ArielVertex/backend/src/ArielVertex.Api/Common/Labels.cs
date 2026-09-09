@@ -18,7 +18,7 @@ public static class Labels
         PortalRole.BusinessDirector => "Business Director",
         PortalRole.BusinessManager => "Business Manager",
         PortalRole.BusinessPerson => "Business Person",
-        PortalRole.TechnicalLead => "Technical Lead",
+        PortalRole.TechnicalLead => "Team Lead",
         PortalRole.SystemAdmin => "System Admin",
         PortalRole.Frontdesk => "Front Desk",
         PortalRole.Accountant => "Accountant",
@@ -45,6 +45,43 @@ public static class Labels
     public static string BillStatus(BillStatus s) => Spaced(s.ToString());
 
     public static string PettyCashEntryStatus(PettyCashEntryStatus s) => Spaced(s.ToString());
+
+    public static string HelpdeskTicketStatusLabel(HelpdeskTicketStatus s) => s switch
+    {
+        HelpdeskTicketStatus.Open => "Open",
+        HelpdeskTicketStatus.InProgress => "In Progress",
+        HelpdeskTicketStatus.Resolved => "Resolved",
+        HelpdeskTicketStatus.Closed => "Closed"
+    };
+
+    public static string HelpdeskTicketPriorityLabel(HelpdeskTicketPriority p) => Spaced(p.ToString());
+
+    public static string HelpdeskTicketCategoryLabel(HelpdeskTicketCategory c) => Spaced(c.ToString());
+
+    public static string AssetCategory(AssetCategory c) => Spaced(c.ToString());
+
+    public static string AssetConditionLabel(AssetCondition c) => Spaced(c.ToString());
+
+    public static string AssetStatusLabel(AssetStatus s) => s switch
+    {
+        AssetStatus.Available => "Available",
+        AssetStatus.Assigned => "Assigned",
+        AssetStatus.InRepair => "In Repair",
+        AssetStatus.Retired => "Retired",
+        AssetStatus.PendingAssignment => "Pending Assignment"
+    };
+
+    public static string AssetRequestTypeLabel(AssetRequestType t) => Spaced(t.ToString());
+
+    public static string AssetRequestStatusLabel(AssetRequestStatus s) => s switch
+    {
+        AssetRequestStatus.Pending => "Pending",
+        AssetRequestStatus.Approved => "Approved",
+        AssetRequestStatus.Rejected => "Rejected",
+        AssetRequestStatus.Completed => "Completed",
+        AssetRequestStatus.Cancelled => "Cancelled",
+        AssetRequestStatus.PendingAcceptance => "Pending Acceptance"
+    };
 
     public static string PipStatus(PipStatus s) => Spaced(s.ToString());
 

@@ -10,6 +10,9 @@ interface Enums {
   cycleStatuses: EnumOption[]; appraisalStages: EnumOption[]; goalStatuses: EnumOption[]
   promotionStages: EnumOption[]; trainingStatuses: EnumOption[]; goalCategories: EnumOption[]
   pettyCashStatuses: EnumOption[]
+  helpdeskTicketStatuses: EnumOption[]; helpdeskTicketPriorities: EnumOption[]; helpdeskTicketCategories: EnumOption[]
+  assetCategories: EnumOption[]; assetConditions: EnumOption[]; assetStatuses: EnumOption[]
+  assetRequestTypes: EnumOption[]; assetRequestStatuses: EnumOption[]
 }
 
 export function useEnums() {

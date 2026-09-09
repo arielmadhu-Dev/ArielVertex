@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, FolderKanban, ClipboardCheck, MessageSquareQuote, LineChart,
   UsersRound, UserPlus, GaugeCircle, FileBarChart, ShieldCheck, CalendarClock, Gauge, Wallet,
-  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart, Receipt, Banknote, LucideIcon,
+  LifeBuoy, SlidersHorizontal, NotebookPen, CalendarRange, Award, Target, TrendingUp, GraduationCap, PieChart, Receipt, Banknote, Package, LucideIcon,
 } from 'lucide-react'
 import type { CurrentUser } from '../lib/types'
 
@@ -21,6 +21,8 @@ export const P = {
   PipView: 'pip.view', PipManage: 'pip.manage', ConfigManage: 'config.manage',
   MinutesManage: 'minutes.manage',
   PettyCashManage: 'pettyCash.manage', PettyCashViewAll: 'pettyCash.view.all',
+  HelpdeskRaise: 'helpdesk.raise', HelpdeskManage: 'helpdesk.manage',
+  AssetsManage: 'assets.manage', AssetsApprove: 'assets.approve', AssetsViewAll: 'assets.view.all', AssetsRaise: 'assets.raise',
   // Performance management (ported)
   CyclesManage: 'cycles.manage', AppraisalsManage: 'appraisals.manage', AppraisalsRelease: 'appraisals.release',
   GoalsAssign: 'goals.assign', GoalsViewAll: 'goals.view.all',
@@ -72,9 +74,11 @@ export const navGroups: NavGroup[] = [
       { to: '/resources', label: 'Resource Visibility', icon: GaugeCircle, feature: 'resources', show: (u) => any(u, P.ResourcesViewAll) },
       { to: '/hiring', label: 'Hiring Requests', icon: UserPlus, feature: 'hiring', show: (u) => any(u, P.ResourcesRequest, P.ResourcesManage) },
       { to: '/employees', label: 'Employees', icon: UsersRound, show: (u) => any(u, P.EmployeesManage, P.ProjectsViewAll) },
-      { to: '/expenses', label: 'Expenses', icon: Wallet, feature: 'expenses', show: (u) => any(u, P.ExpensesManage, P.ExpensesApprove, P.ExpensesViewAll) },
+      // { to: '/expenses', label: 'Expenses', icon: Wallet, feature: 'expenses', show: (u) => any(u, P.ExpensesManage, P.ExpensesApprove, P.ExpensesViewAll) },
+      { to: '/assets', label: 'Asset Management', icon: Package, feature: 'assets', show: (u) => any(u, P.AssetsManage, P.AssetsViewAll, P.AssetsRaise, P.AssetsApprove) },
       { to: '/petty-cash', label: 'Petty Cash', icon: Banknote, feature: 'pettyCash', show: (u) => any(u, P.PettyCashManage, P.PettyCashViewAll) },
       { to: '/bills', label: 'Bills', icon: Receipt, feature: 'bills', show: (u) => any(u, P.BillsManage, P.BillsApprove, P.BillsViewAll) },
+      { to: '/helpdesk', label: 'Helpdesk', icon: LifeBuoy, show: (u) => any(u, P.HelpdeskRaise, P.HelpdeskManage) },
       { to: '/reports', label: 'Reports', icon: FileBarChart, feature: 'reports', show: (u) => any(u, P.ReportsView) },
     ],
   },

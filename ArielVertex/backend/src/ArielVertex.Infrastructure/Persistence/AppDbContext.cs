@@ -43,6 +43,9 @@ public class AppDbContext : DbContext
     public DbSet<Goal> Goals => Set<Goal>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
     public DbSet<TrainingRecommendation> TrainingRecommendations => Set<TrainingRecommendation>();
+    public DbSet<HelpdeskTicket> HelpdeskTickets => Set<HelpdeskTicket>();
+    public DbSet<Asset> Assets => Set<Asset>();
+    public DbSet<AssetRequest> AssetRequests => Set<AssetRequest>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -224,6 +227,41 @@ public class AppDbContext : DbContext
             e.Property(x => x.Debit).HasPrecision(12, 2);
             e.Property(x => x.Balance).HasPrecision(12, 2);
             e.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedById).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<HelpdeskTicket>(e =>
+        {
+            e.HasIndex(x => x.Status);
+            e.HasIndex(x => x.RaisedById);
+            e.Property(x => x.Subject).HasMaxLength(200);
+            e.Property(x => x.Description).HasMaxLength(4000);
+            e.HasOne(x => x.RaisedBy).WithMany().HasForeignKey(x => x.RaisedById).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.AssignedTo).WithMany().HasForeignKey(x => x.AssignedToId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<Asset>(e =>
+        {
+            e.HasIndex(x => x.Status);
+            e.HasIndex(x => x.AssignedToId);
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.SerialNumber).HasMaxLength(100);
+            e.HasOne(x => x.AssignedTo).WithMany().HasForeignKey(x => x.AssignedToId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedById).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<AssetRequest>(e =>
+        {
+            e.HasIndex(x => x.Status);
+            e.HasIndex(x => x.RaisedById);
+            e.HasIndex(x => x.AssetId);
+            e.Property(x => x.Subject).HasMaxLength(200);
+            e.Property(x => x.Description).HasMaxLength(4000);
+            e.Property(x => x.Vendor).HasMaxLength(200);
+            e.HasOne(x => x.RaisedBy).WithMany().HasForeignKey(x => x.RaisedById).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.TargetUser).WithMany().HasForeignKey(x => x.TargetUserId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.Approver).WithMany().HasForeignKey(x => x.ApproverId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.Asset).WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<Bill>(e =>
