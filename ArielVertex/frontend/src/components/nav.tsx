@@ -21,7 +21,7 @@ export const P = {
   PipView: 'pip.view', PipManage: 'pip.manage', ConfigManage: 'config.manage',
   MinutesManage: 'minutes.manage',
   PettyCashManage: 'pettyCash.manage', PettyCashViewAll: 'pettyCash.view.all',
-  HelpdeskRaise: 'helpdesk.raise', HelpdeskManage: 'helpdesk.manage',
+  HelpdeskRaise: 'helpdesk.raise', HelpdeskManage: 'helpdesk.manage', HelpdeskAssign: 'helpdesk.assign',
   AssetsManage: 'assets.manage', AssetsApprove: 'assets.approve', AssetsViewAll: 'assets.view.all', AssetsRaise: 'assets.raise',
   // Performance management (ported)
   CyclesManage: 'cycles.manage', AppraisalsManage: 'appraisals.manage', AppraisalsRelease: 'appraisals.release',

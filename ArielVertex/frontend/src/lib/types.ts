@@ -193,6 +193,10 @@ export interface HelpdeskTicket {
   canManage: boolean
 }
 
+export interface HelpdeskCategoryAssignment {
+  category: HelpdeskTicketCategory; categoryLabel: string; userId?: number; userName?: string
+}
+
 export type AssetCategory = 'Laptop' | 'Desktop' | 'Monitor' | 'Keyboard' | 'Mouse' | 'Printer' | 'NetworkDevice' | 'Software' | 'Furniture' | 'Other'
 export type AssetCondition = 'New' | 'Good' | 'Fair' | 'Poor' | 'Broken'
 export type AssetStatus = 'Available' | 'Assigned' | 'InRepair' | 'Retired' | 'PendingAssignment'

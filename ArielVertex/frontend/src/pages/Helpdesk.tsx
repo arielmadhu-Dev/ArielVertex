@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LifeBuoy, Plus, MessageSquareReply } from 'lucide-react'
+import { LifeBuoy, Plus, MessageSquareReply, ShieldCheck } from 'lucide-react'
 import { api, apiError } from '../lib/api'
 import { useAuth } from '../lib/auth'
-import type { HelpdeskTicket } from '../lib/types'
+import type { HelpdeskTicket, HelpdeskCategoryAssignment } from '../lib/types'
+import { useEmployees } from '../lib/hooks'
 import { PageHeader } from '../components/PageHeader'
 import { Card, Button, EmptyState, Skeleton, StatusPill } from '../ui/primitives'
 import { Modal } from '../ui/Modal'
@@ -20,13 +21,16 @@ const STATUS_OPTS = [
 ]
 
 export default function Helpdesk() {
-  const { has } = useAuth()
+  const { user, has } = useAuth()
   const { push } = useToast()
   const qc = useQueryClient()
   const canManage = has(P.HelpdeskManage)
   const canRaise = has(P.HelpdeskRaise)
+  const canAssign = has(P.HelpdeskAssign)
+  const canUpdate = (t: HelpdeskTicket) => canManage || t.assignedToId === user?.id
   const [open, setOpen] = useState(false)
   const [detail, setDetail] = useState<HelpdeskTicket | null>(null)
+  const [supportOpen, setSupportOpen] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['helpdesk'],
@@ -34,6 +38,26 @@ export default function Helpdesk() {
     enabled: canRaise || canManage
   })
   const invalidate = () => qc.invalidateQueries({ queryKey: ['helpdesk'] })
+
+  const { data: categoryData, isLoading: categoryLoading } = useQuery({
+    queryKey: ['helpdesk-categories'],
+    queryFn: async () => (await api.get<HelpdeskCategoryAssignment[]>('/helpdesk/categories')).data,
+    enabled: canAssign
+  })
+  const { data: employees = [] } = useEmployees()
+
+  const [picks, setPicks] = useState<Record<string, string>>({})
+  const saveSupport = useMutation({
+    mutationFn: async () => {
+      for (const cat of categoryData ?? []) {
+        const userId = picks[cat.category]
+        if (userId === undefined) continue
+        await api.put('/helpdesk/categories', { category: cat.category, userId: userId ? Number(userId) : null })
+      }
+    },
+    onSuccess: () => { push('Support personnel updated'); setSupportOpen(false); qc.invalidateQueries({ queryKey: ['helpdesk-categories'] }) },
+    onError: (e) => push(apiError(e), 'error'),
+  })
 
   const [form, setForm] = useState({ subject: '', description: '', category: 'General', priority: 'Medium' })
   const create = useMutation({
@@ -54,7 +78,10 @@ export default function Helpdesk() {
   return (
     <div>
       <PageHeader title="Helpdesk" subtitle="Raise and resolve support tickets" icon={<LifeBuoy className="h-5 w-5" />}
-        actions={canRaise ? <Button icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)}>Raise Ticket</Button> : undefined} />
+        actions={<>
+          {canAssign && <Button variant="secondary" icon={<ShieldCheck className="h-4 w-4" />} onClick={() => { setPicks(Object.fromEntries((categoryData ?? []).map((c) => [c.category, c.userId?.toString() ?? '']))); setSupportOpen(true) }}>Manage Support Personnel</Button>}
+          {canRaise ? <Button icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)}>Raise Ticket</Button> : undefined}
+        </>} />
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto av-scroll-x">
@@ -126,7 +153,7 @@ export default function Helpdesk() {
       {detail && (
         <Modal open={!!detail} onClose={() => { setDetail(null); setUpdateForm({ status: '', resolution: '' }) }} title={`Ticket #${detail.id}`}
           footer={<><Button variant="secondary" onClick={() => { setDetail(null); setUpdateForm({ status: '', resolution: '' }) }}>Close</Button>
-            {canManage && <Button icon={<MessageSquareReply className="h-4 w-4" />} loading={update.isPending} disabled={!updateForm.status && !updateForm.resolution} onClick={() => update.mutate()}>Update</Button>}</>}>
+            {canUpdate(detail) && <Button icon={<MessageSquareReply className="h-4 w-4" />} loading={update.isPending} disabled={!updateForm.status && !updateForm.resolution} onClick={() => update.mutate()}>Update</Button>}</>}>
           <div className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <div><span className="av-label block mb-1">Subject</span><p className="text-sm">{detail.subject}</p></div>
@@ -141,7 +168,7 @@ export default function Helpdesk() {
               {detail.resolvedAt && <div><span className="av-label block mb-1">Resolved</span><p className="text-sm">{fmtDateTime(detail.resolvedAt)}</p></div>}
               {detail.closedAt && <div><span className="av-label block mb-1">Closed</span><p className="text-sm">{fmtDateTime(detail.closedAt)}</p></div>}
             </div>
-            {canManage && (
+            {canUpdate(detail) && (
               <div className="border-t border-[var(--line)] pt-4 space-y-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Update Ticket</p>
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -155,6 +182,24 @@ export default function Helpdesk() {
                 </div>
               </div>
             )}
+          </div>
+        </Modal>
+      )}
+    {supportOpen && (
+        <Modal open={supportOpen} onClose={() => setSupportOpen(false)} title="Helpdesk Support Personnel"
+          footer={<><Button variant="secondary" onClick={() => setSupportOpen(false)}>Cancel</Button><Button loading={saveSupport.isPending} onClick={() => saveSupport.mutate()}>Save Assignments</Button></>}>
+          <p className="text-sm text-slate-500 mb-4">For each ticket category, choose the support person. Tickets are automatically assigned to the person selected for their category.</p>
+          <div className="max-h-[55vh] overflow-auto space-y-3">
+            {categoryLoading ? [...Array(4)].map((_, i) => <Skeleton key={i} className="h-14" />)
+              : (categoryData ?? []).map((cat) => (
+                <div key={cat.category} className="border border-[var(--line)] rounded-lg p-3">
+                  <p className="text-sm font-semibold mb-2">{cat.categoryLabel}</p>
+                  <Select value={picks[cat.category] ?? ''} onChange={(e) => setPicks({ ...picks, [cat.category]: e.target.value })}>
+                    <option value="">— none —</option>
+                    {(employees ?? []).filter((emp) => emp.status === 'Active').map((emp) => <option key={emp.id} value={emp.id}>{emp.name}{emp.department ? ` · ${emp.department}` : ''}</option>)}
+                  </Select>
+                </div>
+              ))}
           </div>
         </Modal>
       )}

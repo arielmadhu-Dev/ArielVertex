@@ -20,3 +20,12 @@ public record UpdateHelpdeskTicketRequest(
     HelpdeskTicketPriority? Priority,
     int? AssignedToId,
     [MaxLength(4000)] string? Resolution);
+
+/// <summary>A ticket category and its designated helpdesk support person.</summary>
+public record HelpdeskCategoryAssignmentDto(
+    HelpdeskTicketCategory Category, string CategoryLabel, int? UserId, string? UserName);
+
+/// <summary>HR Director request to designate the helpdesk support person for a ticket category.</summary>
+public record SetHelpdeskCategoryRequest(
+    HelpdeskTicketCategory Category,
+    int? UserId);

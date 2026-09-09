@@ -57,6 +57,7 @@ public static class Permissions
     public const string MinutesManage       = "minutes.manage";
     public const string HelpdeskRaise       = "helpdesk.raise";
     public const string HelpdeskManage      = "helpdesk.manage";
+    public const string HelpdeskAssign      = "helpdesk.assign";   // HR Director: designate per-department helpdesk support person
 
     // ---- Performance management (ported from PMS) ----
     public const string CyclesManage        = "cycles.manage";        // HR create/activate/close appraisal cycles
@@ -83,7 +84,7 @@ public static class Permissions
         AssetsManage, AssetsApprove, AssetsRaise,
         BillsManage, BillsApprove, BillsViewAll, BillsConfigure,
         PipView, PipManage, ConfigManage, PettyCashManage, PettyCashViewAll, MinutesManage,
-        HelpdeskRaise, HelpdeskManage,
+        HelpdeskRaise, HelpdeskManage, HelpdeskAssign,
         CyclesManage, AppraisalsManage, AppraisalsRelease, GoalsAssign, GoalsViewAll,
         PromotionsRecommend, PromotionsApprove, PromotionsManage, LearningManage, AnalyticsView
     };
@@ -101,7 +102,8 @@ public static class Permissions
         PortalRole.SuperAdmin => SuperAdminGrant,
 
         // HR Director is a Super Admin equivalent (per business decision) — full access incl. user/role management.
-        PortalRole.HrDirector => SuperAdminGrant,
+        // Additionally may designate the per-department helpdesk support person.
+        PortalRole.HrDirector => SuperAdminGrant.Concat(new[] { HelpdeskAssign }).ToArray(),
 
         // CEO: view-oriented, plus Request Review and Add Feedback (matrix section 5).
         PortalRole.CeoAdmin => new[]

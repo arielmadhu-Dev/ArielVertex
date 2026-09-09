@@ -44,6 +44,7 @@ public class AppDbContext : DbContext
     public DbSet<Promotion> Promotions => Set<Promotion>();
     public DbSet<TrainingRecommendation> TrainingRecommendations => Set<TrainingRecommendation>();
     public DbSet<HelpdeskTicket> HelpdeskTickets => Set<HelpdeskTicket>();
+    public DbSet<HelpdeskCategoryAssignment> HelpdeskCategoryAssignments => Set<HelpdeskCategoryAssignment>();
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<AssetRequest> AssetRequests => Set<AssetRequest>();
 
@@ -237,6 +238,12 @@ public class AppDbContext : DbContext
             e.Property(x => x.Description).HasMaxLength(4000);
             e.HasOne(x => x.RaisedBy).WithMany().HasForeignKey(x => x.RaisedById).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.AssignedTo).WithMany().HasForeignKey(x => x.AssignedToId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<HelpdeskCategoryAssignment>(e =>
+        {
+            e.HasIndex(x => x.Category).IsUnique();
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<Asset>(e =>

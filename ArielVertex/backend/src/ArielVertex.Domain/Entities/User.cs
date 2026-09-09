@@ -37,6 +37,9 @@ public class User : BaseEntity
     public int? DepartmentId { get; set; }
     public Department? Department { get; set; }
 
+    /// <summary>When true, this user is the designated helpdesk support person for their department.</summary>
+    public bool IsHelpdeskSupport { get; set; }
+
     public int? ManagerId { get; set; }
     public User? Manager { get; set; }
     public ICollection<User> DirectReports { get; set; } = new List<User>();
