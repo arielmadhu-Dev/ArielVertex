@@ -2,13 +2,14 @@ import { ReactNode, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Folder, Users, ClipboardList, AlertTriangle, CheckCircle2, UserPlus, Calendar,
-  Heart, Edit3, TrendingUp, Star, LucideIcon,
+  Heart, Edit3, TrendingUp, Star, LucideIcon, LifeBuoy,
 } from 'lucide-react'
 import { cx, tone, Tone } from './util'
 
 const iconMap: Record<string, LucideIcon> = {
   folder: Folder, users: Users, clipboard: ClipboardList, alert: AlertTriangle, check: CheckCircle2,
   userplus: UserPlus, calendar: Calendar, heart: Heart, edit: Edit3, trending: TrendingUp,
+  lifebuoy: LifeBuoy,
 }
 
 export function StatCard({ label, value, delta, t = 'brand', icon, index = 0 }: {

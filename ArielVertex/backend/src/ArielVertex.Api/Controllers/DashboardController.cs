@@ -86,9 +86,11 @@ public class DashboardController : ControllerBase
                 var employeeCount = await _db.Users.CountAsync(u => u.Status == EmployeeStatus.Active);
                 var pendingFeedback = await _db.Feedbacks.CountAsync(f => f.Status == FeedbackStatus.Submitted);
                 var openReviews = await _db.ReviewRequests.CountAsync(r => r.Status == ReviewRequestStatus.Open);
+                var openTickets = await _db.HelpdeskTickets.CountAsync(t => t.Status == HelpdeskTicketStatus.Open);
                 stats.Add(new("projects", "Active Projects", activeProjects.ToString(), null, "info", "folder"));
                 stats.Add(new("employees", "Employees", employeeCount.ToString(), null, "brand", "users"));
-                stats.Add(new("reviews", "Open Reviews", openReviews.ToString(), null, "warn", "clipboard"));
+                // stats.Add(new("reviews", "Open Reviews", openReviews.ToString(), null, "warn", "clipboard"));
+                stats.Add(new("tickets", "Open Tickets", openTickets.ToString(), null, openTickets > 0 ? "warn" : "good", "lifebuoy"));
                 stats.Add(new("missing", "Missing Updates", totalMissing.ToString(), null, totalMissing > 0 ? "danger" : "good", "alert"));
                 pending.Add(new("Feedback", "Feedback awaiting approval", "HR review required", pendingFeedback, "/feedback"));
                 break;
